@@ -76,6 +76,7 @@ export function Navbar() {
     const nextRole = role === 'student' ? 'admin' : 'student';
     setRole(nextRole);
     localStorage.setItem('mentorai_role', nextRole);
+    document.cookie = `mentorai_session=${nextRole === 'admin' ? 'admin' : 'active'}; path=/; max-age=2592000; SameSite=Lax`;
     window.location.reload();
   };
 

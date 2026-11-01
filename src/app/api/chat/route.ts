@@ -24,12 +24,24 @@ export async function POST(req: NextRequest) {
       MENTOR_SYSTEM_PROMPTS.tracks[trackId as keyof typeof MENTOR_SYSTEM_PROMPTS.tracks] ||
       MENTOR_SYSTEM_PROMPTS.tracks.it;
 
+    // Normalize Mood & Gender keys
+    const moodKey =
+      mood === 'jahldor' || mood === 'strict'
+        ? 'strict'
+        : mood === 'mehribon' || mood === 'kind'
+        ? 'kind'
+        : mood === 'ilhomlantiruvchi' || mood === 'inspirational'
+        ? 'inspirational'
+        : 'classic';
+
+    const genderKey = gender === 'male' || gender === 'ogil' ? 'male' : 'female';
+
     // Mood & Gender prompt selection
     const moodInstruction =
-      MENTOR_SYSTEM_PROMPTS.moods[mood as keyof typeof MENTOR_SYSTEM_PROMPTS.moods] ||
+      MENTOR_SYSTEM_PROMPTS.moods[moodKey as keyof typeof MENTOR_SYSTEM_PROMPTS.moods] ||
       MENTOR_SYSTEM_PROMPTS.moods.classic;
     const genderInstruction =
-      MENTOR_SYSTEM_PROMPTS.genders[gender as keyof typeof MENTOR_SYSTEM_PROMPTS.genders] ||
+      MENTOR_SYSTEM_PROMPTS.genders[genderKey as keyof typeof MENTOR_SYSTEM_PROMPTS.genders] ||
       MENTOR_SYSTEM_PROMPTS.genders.female;
 
     const langName =

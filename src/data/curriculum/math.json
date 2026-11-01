@@ -1,9 +1,9 @@
 [
   {
     "id": "math-01",
-    "topic": "Oddiy kasrlar va umumiy maxraj topish",
+    "topic": "Kasrlar va umumiy maxraj topish",
     "track": "exact-sciences",
-    "level": "Boshlang'ich poydevor (5-6 sinf)",
+    "level": "Poydevor (5-6 sinf)",
     "theory": "Har xil maxrajli kasrlarni qo'shish yoki ayirish uchun avval ularning umumiy maxraji (EKUK) topiladi. Har bir kasrning surat va maxraji qo'shimcha ko'paytuvchiga ko'paytiriladi.",
     "formula": "a/b ± c/d = (a·d ± c·b) / (b·d)",
     "example": {
@@ -70,6 +70,41 @@
       "correct": "5",
       "hint": "Ko'paytmasi 20, yig'indisi esa 9 bo'ladigan sonlarni tanlang."
     }
+  },
+  {
+    "id": "math-05",
+    "topic": "Arifmetik va geometrik progressiyalar",
+    "track": "exact-sciences",
+    "level": "Litsey standarti (9-sinf)",
+    "theory": "Arifmetik progressiyada har bir keyingi had o'zgarmas d songa qo'shiladi. Geometrik progressiyada esa har bir had o'zgarmas q maxrajga ko'paytiriladi. Dastlabki n ta had yig'indisi litsey imtihonlarida eng ko'p uchraydi.",
+    "formula": "aₙ = a₁ + (n - 1)d,  Sₙ = ((a₁ + aₙ) · n) / 2  |  bₙ = b₁ · qⁿ⁻¹",
+    "example": {
+      "problem": "a₁ = 3 va d = 4 bo'lgan arifmetik progressiyaning 10-hadini toping.",
+      "solution": "a₁₀ = a₁ + 9d = 3 + 9 · 4 = 3 + 36 = 39."
+    },
+    "practice": {
+      "question": "a₁ = 2, d = 3 bo'lgan arifmetik progressiyaning dastlabki 5 ta hadi yig'indisini toping.",
+      "options": ["40", "35", "50", "28"],
+      "correct": "40",
+      "hint": "a₅ = 2 + 4·3 = 14. S₅ = (2 + 14)·5 / 2 = 16·5 / 2 = 40."
+    }
+  },
+  {
+    "id": "math-06",
+    "topic": "Geometriya: Pifagor teoremasi va to'g'ri burchakli uchburchak",
+    "track": "exact-sciences",
+    "level": "Litsey imtihoni (8-9 sinf)",
+    "theory": "To'g'ri burchakli uchburchakda gipotenuzaning kvadrati katetlar kvadratlarining yig'indisiga teng. Shuningdek, 30° li burchak qarshisidagi katet gipotenuzaning yarmiga tengdir.",
+    "formula": "c² = a² + b²  =>  c = √(a² + b²)",
+    "example": {
+      "problem": "Katetlari 6 cm va 8 cm bo'lgan to'g'ri burchakli uchburchakning gipotenuzasini toping.",
+      "solution": "c² = 6² + 8² = 36 + 64 = 100  =>  c = √100 = 10 cm (Misr uchburchagi 3-4-5 karrali)."
+    },
+    "practice": {
+      "question": "Kateti 5 cm, gipotenuzasi 13 cm bo'lgan to'g'ri burchakli uchburchakning ikkinchi katetini toping.",
+      "options": ["12 cm", "10 cm", "11 cm", "8 cm"],
+      "correct": "12 cm",
+      "hint": "b² = 13² - 5² = 169 - 25 = 144  =>  b = √144 = 12."
+    }
   }
 ]
-

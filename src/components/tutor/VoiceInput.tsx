@@ -20,11 +20,23 @@ export function VoiceInput({
 }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
 
-  const toggleListening = () => {
+  const toggleListening = async () => {
     if (isListening) {
       VoiceAssistant.stopListening();
       setIsListening(false);
     } else {
+      // Trigger mediaDevices.getUserMedia cleanly on click to present permission modal
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach((track) => track.stop());
+        } catch (micErr) {
+          console.warn("Microphone access permission was not granted:", micErr);
+          setIsListening(false);
+          return;
+        }
+      }
+
       const langCode = language === 'uz' ? 'uz-UZ' : language === 'ru' ? 'ru-RU' : 'en-US';
       const started = VoiceAssistant.startListening(
         (transcript) => {

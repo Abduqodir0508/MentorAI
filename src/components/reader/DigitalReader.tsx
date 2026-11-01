@@ -22,9 +22,12 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
-// Import fallback local curriculum datasets
+// Import fallback local curriculum datasets for all 5 tracks
 import mathCurriculum from '@/data/curriculum/math.json';
 import itCurriculum from '@/data/curriculum/it.json';
+import englishCurriculum from '@/data/curriculum/english.json';
+import biologyCurriculum from '@/data/curriculum/biology.json';
+import humanitiesCurriculum from '@/data/curriculum/humanities.json';
 
 interface DigitalReaderProps {
   modules?: BookModule[];
@@ -43,12 +46,29 @@ export function DigitalReader({
   const { language } = useLanguage();
 
   // Pick dataset based on track if modules not provided
-  const modules: BookModule[] =
-    externalModules && externalModules.length > 0
-      ? externalModules
-      : trackId === 'it' || trackId === 'it-basics'
-      ? (itCurriculum as unknown as BookModule[])
-      : (mathCurriculum as unknown as BookModule[]);
+  const getModulesForTrack = (): BookModule[] => {
+    if (externalModules && externalModules.length > 0) {
+      return externalModules;
+    }
+    switch (trackId) {
+      case 'it':
+      case 'it-basics':
+        return itCurriculum as unknown as BookModule[];
+      case 'languages':
+      case 'english':
+        return englishCurriculum as unknown as BookModule[];
+      case 'medicine':
+        return biologyCurriculum as unknown as BookModule[];
+      case 'law':
+        return humanitiesCurriculum as unknown as BookModule[];
+      case 'exact-sciences':
+      case 'math':
+      default:
+        return mathCurriculum as unknown as BookModule[];
+    }
+  };
+
+  const modules = getModulesForTrack();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);

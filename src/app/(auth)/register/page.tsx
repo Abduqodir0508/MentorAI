@@ -43,12 +43,14 @@ export default function RegisterPage() {
       localStorage.setItem('mentorai_role', 'student');
       localStorage.setItem('mentorai_user_email', email);
       localStorage.setItem('mentorai_user_name', fullName);
+      document.cookie = 'mentorai_session=active; path=/; max-age=2592000; SameSite=Lax';
       router.push('/onboarding');
     } catch (err: any) {
       console.warn('Signup notice:', err.message);
       localStorage.setItem('mentorai_role', 'student');
       localStorage.setItem('mentorai_user_email', email);
       localStorage.setItem('mentorai_user_name', fullName);
+      document.cookie = 'mentorai_session=active; path=/; max-age=2592000; SameSite=Lax';
       router.push('/onboarding');
     } finally {
       setIsLoading(false);

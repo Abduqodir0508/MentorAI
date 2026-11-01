@@ -1,0 +1,85 @@
+[
+  {
+    "id": "eng-01",
+    "topic": "Present Perfect vs Past Simple: Farqlar va signallar",
+    "track": "languages",
+    "level": "CEFR A2-B1 (Litsey standarti)",
+    "theory": "Agar ish-harakat aniq o'tgan vaqtda tugagan bo'lsa (yesterday, in 2020, ago, last week) — Past Simple ishlatiladi. Agar ish-harakat natijasi hozirgi paytga bog'liq bo'lsa yoki vaqt aniq aytilmagan bo'lsa (already, yet, just, ever, never, so far) — Present Perfect (have/has + V3) ishlatiladi.",
+    "formula": "Past Simple: S + V2/ed  |  Present Perfect: S + have/has + V3",
+    "example": {
+      "problem": "To'g'ri shaklni tanlang: 'I (lose) my key yesterday, but I (find) it already.'",
+      "solution": "'yesterday' bo'lgani uchun 'lost' (Past Simple), ikkinchi gapda 'already' natijani ko'rsatgani uchun 'have found' (Present Perfect). To'g'ri javob: lost / have found."
+    },
+    "practice": {
+      "question": "Which sentence is grammatically correct?",
+      "options": [
+        "She has lived in London in 2019.",
+        "She lived in London in 2019.",
+        "She has lived in London yesterday.",
+        "She lives in London two years ago."
+      ],
+      "correct": "She lived in London in 2019.",
+      "hint": "'in 2019' aniq o'tgan zamon bo'lgani sababli faqat Past Simple (lived) to'g'ri bo'ladi."
+    }
+  },
+  {
+    "id": "eng-02",
+    "topic": "Passive Voice: Majhul nisbat formulasi va qo'llanishi",
+    "track": "languages",
+    "level": "CEFR B1 (Litsey imtihoni)",
+    "theory": "Majhul nisbatda (Passive Voice) ish-harakatni kim bajarganligi emas, balki obyekt ustida nima sodir bo'lganligi muhim hisoblanadi. Asosiy formula har doim 'to be + V3 (Past Participle)' ko'rinishida bo'ladi.",
+    "formula": "Object + to be (zamonga mos) + V3 + (by Subject)",
+    "example": {
+      "problem": "Active: 'Shakespeare wrote Hamlet.' Ushbu gapni Passive Voice ga o'tkazing.",
+      "solution": "'wrote' bu Past Simple. 'Hamlet' birlikda, demak to be 'was' bo'ladi: 'Hamlet was written by Shakespeare.'"
+    },
+    "practice": {
+      "question": "Change into Passive: 'They build new houses every year.'",
+      "options": [
+        "New houses were built every year.",
+        "New houses are built every year.",
+        "New houses has been built every year.",
+        "New houses are building every year."
+      ],
+      "correct": "New houses are built every year.",
+      "hint": "'every year' Present Simple ni bildiradi, ko'plikda (houses) 'are built' ishlatiladi."
+    }
+  },
+  {
+    "id": "eng-03",
+    "topic": "Conditional Sentences: First and Second Conditionals",
+    "track": "languages",
+    "level": "Litsey imtihoni standarti (8-9 sinf)",
+    "theory": "First Conditional — kelajakda amalga oshishi mumkin bo'lgan real shartlar uchun (If + Present Simple, will + V1). Second Conditional — hozirgi yoki kelajakdagi nohaqiqiy, orzu-xayoliy shartlar uchun (If + Past Simple, would + V1).",
+    "formula": "1st: If + Present Simple, will + V1  |  2nd: If + Past Simple, would + V1",
+    "example": {
+      "problem": "Qavsni oching: 'If I (win) the lottery tomorrow, I would travel around the world.'",
+      "solution": "Natija qismida 'would travel' (2nd Conditional) turgani sababli, If qismida Past Simple bo'ladi: 'won'. If I won..."
+    },
+    "practice": {
+      "question": "Complete the sentence: 'If it rains tomorrow, we _______ the picnic.'",
+      "options": ["cancel", "will cancel", "would cancel", "cancelled"],
+      "correct": "will cancel",
+      "hint": "'If it rains' bu Present Simple (real shart), shuning uchun asosiy gapda 'will cancel' ishlatiladi."
+    }
+  },
+  {
+    "id": "eng-04",
+    "topic": "Modal Verbs: Must, Should, Have to, May farqlari",
+    "track": "languages",
+    "level": "CEFR A2-B1 (Litsey testi)",
+    "theory": "'Must' — shaxsiy qat'iy majburiyat yoki kuchli qoida. 'Have to' — tashqi shart-sharoit taqozosi bo'lgan majburiyat. 'Should' — maslahat yoki tavsiya (qilsa yaxshi bo'lardi). 'Mustn't' — qat'iy taqiq, 'Don't have to' esa majbur emaslikni bildiradi.",
+    "formula": "Must / Should + V1  |  Have/Has to + V1  |  Mustn't (taqiq) ≠ Don't have to (ixtiyoriy)",
+    "example": {
+      "problem": "'You _______ wear a uniform at this lyceum; it is a school rule.'",
+      "solution": "Maktab nizomi bo'yicha tashqi qoida bo'lgani sababli 'have to' yoki 'must' ishlatiladi. Rasmiy qoidalarda 'must / have to' to'g'ri."
+    },
+    "practice": {
+      "question": "Choose the best option: 'You _______ touch this wire. It is extremely dangerous!'",
+      "options": ["don't have to", "mustn't", "shouldn't", "needn't"],
+      "correct": "mustn't",
+      "hint": "Xavfli holatdagi qat'iy taqiq uchun 'mustn't' (mumkin emas!) ishlatiladi."
+    }
+  }
+]
+

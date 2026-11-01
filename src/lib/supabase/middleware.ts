@@ -11,9 +11,6 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock-mentorai.supabase.co';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock';
 
-  // If using placeholder mock credentials in local testing, bypass network call to avoid connection error
-  const isMockSupabase = supabaseUrl.includes('mock-mentorai');
-
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
@@ -58,47 +55,77 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Static assets and auth callback routes bypass
+  // Allow static assets, public API endpoints, landing page, and auth screens
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.includes('.') ||
     pathname === '/' ||
     pathname === '/login' ||
-    pathname === '/register'
+    pathname === '/register' ||
+    pathname === '/auth/login' ||
+    pathname === '/auth/register'
   ) {
     return supabaseResponse;
   }
 
-  if (isMockSupabase) {
-    // In demo / mock mode without live Supabase cloud configured, allow seamless access to preview MVP
-    return supabaseResponse;
+  // Check for persistent session cookies (Supabase sb-*-auth-token or mentorai_session)
+  const allCookies = request.cookies.getAll();
+  const hasSbAuthToken = allCookies.some(c => c.name.startsWith('sb-') && c.name.includes('-auth-token') && c.value);
+  const hasMentorSession = !!request.cookies.get('mentorai_session')?.value;
+
+  let user = null;
+  if (hasSbAuthToken) {
+    try {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    } catch (e) {
+      // Session expired or refresh token failure
+      user = null;
+    }
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const isAuthenticated = !!user || hasMentorSession;
 
-  // If unauthenticated and accessing protected dashboard/learn/admin routes
-  if (!user && (pathname.startsWith('/dashboard') || pathname.startsWith('/learn') || pathname.startsWith('/tutor') || pathname.startsWith('/admin') || pathname.startsWith('/billing') || pathname.startsWith('/onboarding'))) {
+  // Protected core routes: /tracks/*, /dashboard, /tutor, /learn/*, /admin, /billing, /onboarding
+  const isProtectedRoute =
+    pathname.startsWith('/tracks') ||
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/tutor') ||
+    pathname.startsWith('/learn') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/billing') ||
+    pathname.startsWith('/onboarding');
+
+  // If unauthenticated guest tries to access protected learning pages, redirect immediately
+  if (isProtectedRoute && !isAuthenticated) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
   }
 
-  // If user is authenticated, check role for admin routes
-  if (user && pathname.startsWith('/admin')) {
-    const adminEmails = (process.env.ADMIN_EMAILS || 'creator@mentorai.uz,admin@mentorai.uz').split(',').map(e => e.trim().toLowerCase());
-    const isSuperAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
+  // Admin route protection: verify admin privilege
+  if (pathname.startsWith('/admin') && isAuthenticated) {
+    const adminEmails = (process.env.ADMIN_EMAILS || 'creator@mentorai.uz,admin@mentorai.uz')
+      .split(',')
+      .map(e => e.trim().toLowerCase());
+    const isSuperAdminEmail = user?.email && adminEmails.includes(user.email.toLowerCase());
+    const hasAdminSessionCookie = request.cookies.get('mentorai_session')?.value === 'admin';
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
 
-    if (!isSuperAdminEmail && profile?.role !== 'admin') {
+      if (!isSuperAdminEmail && profile?.role !== 'admin' && !hasAdminSessionCookie) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+      }
+    } else if (!hasAdminSessionCookie) {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
@@ -107,4 +134,3 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse;
 }
-

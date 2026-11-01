@@ -1,29 +1,11 @@
 [
   {
     "id": "it-01",
-    "topic": "Semantik HTML5 tuzilishi va teglarning vazifasi",
+    "topic": "Sanoq sistemalari: Ikkilik, o'nlik va o'n oltilik o'tishlar",
     "track": "it",
-    "level": "Boshlang'ich poydevor (Informatika)",
-    "theory": "Semantik HTML teglari shunchaki quti bo'lmasdan, ma'lumotning vazifasi va mazmun-mohiyatini bildiradi. Qidiruv tizimlari (SEO) va maxsus imkoniyatlar (Screen Readers) aynan semantik teglarga tayanadi.",
-    "formula": "<header>, <nav>, <main>, <article>, <section>, <footer>",
-    "example": {
-      "problem": "Veb-sahifaning asosiy navigatsiya havolalarini qaysi semantik teg ichiga o'rash to'g'ri?",
-      "solution": "Navigatsiya havolalari uchun HTML5 standarti bo'yicha maxsus <nav> tegi ishlatiladi: <nav><a href=\"#\">Bosh sahifa</a></nav>."
-    },
-    "practice": {
-      "question": "Quyidagi teglardan qaysi biri NO-semantik hisoblanadi?",
-      "options": ["<div>", "<header>", "<article>", "<main>"],
-      "correct": "<div>",
-      "hint": "<div> va <span> teglarida o'ziga xos ma'no yo'q, ular faqat neytral konteyner vazifasini bajaradi."
-    }
-  },
-  {
-    "id": "it-02",
-    "topic": "Sanoq sistemalari: 2-lik va 10-lik o'rtasida o'tish",
-    "track": "it",
-    "level": "Litsey imtihoni standarti (7-8 sinf)",
-    "theory": "Kompyuter faqat 0 va 1 raqamlaridan iborat ikkilik sanoq sistemasida ishlaydi. Ikkilik sonni o'nlikka o'tkazish uchun har bir raqam 2 ning mos darajalariga ko'paytirilib yig'iladi.",
-    "formula": "N₁₀ = aₙ·2ⁿ + ... + a₁·2¹ + a₀·2⁰",
+    "level": "Poydevor (Informatika)",
+    "theory": "Kompyuter faqat 0 va 1 raqamlaridan iborat ikkilik sanoq sistemasida ishlaydi. Ikkilik sonni o'nlikka o'tkazish uchun har bir raqam 2 ning mos darajalariga ko'paytirilib yig'iladi. O'n oltilik tizimda esa 10 dan 15 gacha bo'lgan sonlar A, B, C, D, E, F harflari bilan belgilanadi.",
+    "formula": "N₁₀ = aₙ·2ⁿ + ... + a₁·2¹ + a₀·2⁰  |  16-lik: A=10, B=11, C=12, D=13, E=14, F=15",
     "example": {
       "problem": "1101₂ sonini o'nlik sanoq sistemasiga o'tkazing.",
       "solution": "1·2³ + 1·2² + 0·2¹ + 1·2⁰ = 8 + 4 + 0 + 1 = 13₁₀."
@@ -36,11 +18,11 @@
     }
   },
   {
-    "id": "it-03",
-    "topic": "Algoritmik chiziqli va tarmoqlanuvchi tuzilmalar",
+    "id": "it-02",
+    "topic": "Algoritm asoslari va tarmoqlanuvchi shartlar (if-else)",
     "track": "it",
-    "level": "Litsey imtihoni (8-9 sinf)",
-    "theory": "Tarmoqlanuvchi algoritmlarda ma'lum shart tekshiriladi (if / else). Shart rost (true) bo'lsa bitta yo'l, yolg'on (false) bo'lsa boshqa yo'l bo'yicha ko'rsatmalar bajariladi.",
+    "level": "Litsey imtihoni (7-8 sinf)",
+    "theory": "Tarmoqlanuvchi algoritmlarda berilgan mantiqiy shart tekshiriladi. Shart rost (True) bo'lsa bitta tarmoq, yolg'on (False) bo'lsa boshqa tarmoq bo'yicha ko'rsatmalar bajariladi.",
     "formula": "if (shart) { amallar_1 } else { amallar_2 }",
     "example": {
       "problem": "a = 5, b = 8. Agar a > b bo'lsa c = a - b, aks holda c = a + b. c ning qiymatini toping.",
@@ -52,6 +34,41 @@
       "correct": "5",
       "hint": "10 soni 2 ga qoldiqsiz bo'linadi (10 % 2 === 0 sharti rost)."
     }
+  },
+  {
+    "id": "it-03",
+    "topic": "Ma'lumotlar turlari va mantiqiy amallar (AND, OR, NOT)",
+    "track": "it",
+    "level": "Litsey standarti (8-9 sinf)",
+    "theory": "Mantiqiy amallar (Boolean algebra) dasturlashning asosi hisoblanadi. AND (va) amali barcha shartlar rost bo'lgandagina rost bo'ladi. OR (yoki) amali kamida bitta shart rost bo'lsa rost bo'ladi. NOT (inkor) amali qiymatni teskarisiga aylantiradi.",
+    "formula": "A ∧ B (AND),  A ∨ B (OR),  ¬A (NOT)",
+    "example": {
+      "problem": "A = True, B = False bo'lsa, (A AND B) OR (NOT B) ning natijasi nima bo'ladi?",
+      "solution": "(True AND False) = False. NOT False = True. False OR True = True."
+    },
+    "practice": {
+      "question": "X = False, Y = False bo'lganda NOT(X OR Y) ning natijasi qanday bo'ladi?",
+      "options": ["True", "False", "None", "Error"],
+      "correct": "True",
+      "hint": "False OR False = False. NOT(False) esa True bo'ladi."
+    }
+  },
+  {
+    "id": "it-04",
+    "topic": "Web poydevori: Semantik HTML va zamonaviy veb arxitekturasi",
+    "track": "it",
+    "level": "Litsey imtihoni (Inha & Al-Xorazmiy prep)",
+    "theory": "Semantik HTML teglari shunchaki quti bo'lmasdan, ma'lumotning vazifasi va mazmun-mohiyatini bildiradi. Qidiruv tizimlari (SEO) va maxsus imkoniyatlar (Screen Readers) aynan semantik teglarga tayanadi.",
+    "formula": "<header>, <nav>, <main>, <article>, <section>, <footer>",
+    "example": {
+      "problem": "Veb-sahifaning asosiy navigatsiya havolalarini qaysi semantik teg ichiga o'rash to'g'ri?",
+      "solution": "Navigatsiya havolalari uchun HTML5 standarti bo'yicha maxsus <nav> tegi ishlatiladi: <nav><a href=\"#\">Bosh sahifa</a></nav>."
+    },
+    "practice": {
+      "question": "Quyidagi teglardan qaysi biri NO-semantik hisoblanadi?",
+      "options": ["<div>", "<header>", "<article>", "<main>"],
+      "correct": "<div>",
+      "hint": "<div> va <span> teglarida o'ziga xos ma'no yo'q, ular faqat neytral konteyner vazifasini bajaradi."
+    }
   }
 ]
-

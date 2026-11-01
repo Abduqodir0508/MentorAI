@@ -1,0 +1,57 @@
+[
+  {
+    "id": "law-01",
+    "topic": "O'zbekiston Respublikasi Konstitutsiyasi asoslari va inson huquqlari",
+    "track": "law",
+    "level": "Yuridik litsey (Davlat va huquq)",
+    "theory": "O'zbekiston — suveren, demokratik, huquqiy, ijtimoiy va dunyoviy davlat. Yangi tahrirdagi Konstitutsiyaning bosh tamoyili: 'Inson — jamiyat — davlat'. Inson huquq va erkinliklari oliy qadriyat hisoblanib, davlat organlari faoliyatining asosiy maqsadidir.",
+    "formula": "Bosh tamoyil: Inson — Jamiyat — Davlat  |  Oliy yuridik kuchga ega Bosh qonun",
+    "example": {
+      "problem": "Konstitutsiyaning qaysi moddasi bo'yicha insonning qonunda nazarda tutilmagan holda sud qarorisiz 48 soatdan ortiq ushlab turilishi taqiqlanadi (Habeas Corpus)?",
+      "solution": "Yangi tahrirdagi Konstitutsiyada shaxsiy daxlsizlik va Habeas Corpus qoidasi mustahkamlangan: shaxs sud qarorisiz 48 soatdan ortiq ushlab turilishi mumkin emas."
+    },
+    "practice": {
+      "question": "O'zbekiston Respublikasida inson huquqlari va erkinliklari kim tomonidan kafolatlanadi?",
+      "options": ["Davlat", "Jamoat tashkilotlari", "Faqat sudlar", "Vazirliklar"],
+      "correct": "Davlat",
+      "hint": "Konstitutsiyaga binoan, inson huquq va erkinliklarini ta'minlash davlatning oliy burchidir."
+    }
+  },
+  {
+    "id": "law-02",
+    "topic": "Davlat va huquq nazariyasi: Hokimiyatlar bo'linishi printsipi",
+    "track": "law",
+    "level": "Litsey imtihoni (Huquqshunoslik)",
+    "theory": "Hokimiyatlarning bo'linishi printsipi davlat hokimiyatining bitta shaxs yoki organ qo'lida to'planib qolishining oldini oladi va o'zaro tiyib turish mexanizmini yaratadi. Davlat hokimiyati uchta mustaqil tarmoqqa bo'linadi: Qonun chiqaruvchi (Oliy Majlis), Ijro etuvchi (Vazirlar Mahkamasi) va Sud hokimiyati.",
+    "formula": "Hokimiyat = Qonun chiqaruvchi (Parlament) + Ijro etuvchi (Hukumat) + Sud",
+    "example": {
+      "problem": "O'zbekiston Respublikasida qonunlarni qabul qiluvchi oliy davlat vakillik organi qaysi?",
+      "solution": "Qonun chiqaruvchi oliy davlat organi — ikki palatali Oliy Majlis (Qonunchilik palatasi va Senat) hisoblanadi."
+    },
+    "practice": {
+      "question": "O'zbekiston Respublikasida ijro etuvchi hokimiyatni kim amalga oshiradi?",
+      "options": ["Vazirlar Mahkamasi", "Oliy Majlis", "Oliy Sud", "Konstitutsiyaviy Sud"],
+      "correct": "Vazirlar Mahkamasi",
+      "hint": "Ijro etuvchi hokimiyatning oliy organi O'zbekiston Respublikasi Vazirlar Mahkamasidir."
+    }
+  },
+  {
+    "id": "law-03",
+    "topic": "O'zbekiston tarixi: Amir Temur davlati va 'Temur tuzuklari'",
+    "track": "law",
+    "level": "Litsey imtihoni (Tarix)",
+    "theory": "Amir Temur 1370-yilda Balxdagi qurultoyda Movarounnahrning yagona hukmdori deb e'lon qilindi va markazlashgan qudratli davlat barpo etdi. Uning mashhur shiori: 'Kuch — adolatdadir'. Uning davlat boshqaruvi, harbiy san'ati va adolat mezonlari 'Temur tuzuklari' asarida tizimlashtirilgan.",
+    "formula": "1370-yil — Balx qurultoyi  |  Shior: Kuch — adolatdadir  |  Qonun manbai: Temur tuzuklari",
+    "example": {
+      "problem": "Amir Temur davlatida harbiy qo'shin qanday tizim asosida tashkil etilgan edi?",
+      "solution": "Amir Temur qo'shini qat'iy o'nlik tizim (o'nlik, yuzlik, minglik, tuman - 10 000) asosida tuzilgan va temir intizomga bo'ysungan."
+    },
+    "practice": {
+      "question": "Amir Temur qaysi yilda markazlashgan davlat asoschisi sifatida tan olingan?",
+      "options": ["1370", "1360", "1380", "1405"],
+      "correct": "1370",
+      "hint": "1370-yil aprel oyida Balxdagi qurultoyda Amir Temur Movarounnahrning oliy hukmdori deb e'lon qilingan."
+    }
+  }
+]
+

@@ -41,15 +41,20 @@ export class VoiceAssistant {
       return;
     }
 
-    // Cancel any previous speaking
+    // Cancel any previous speaking to prevent overlapping speech queue
     synth.cancel();
 
-    // Clean text of markdown, code blocks, URLs, and latex formatting before speaking
+    // Clean text of markdown code blocks, backticks, asterisks, HTML tags, and mathematical symbols to prevent audio gibberish
     const cleanText = text
       .replace(/```[\s\S]*?```/g, ' ') // remove code blocks
       .replace(/`([^`]+)`/g, '$1')     // remove inline code ticks
+      .replace(/<[^>]*>/g, ' ')        // strip HTML tags
       .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // markdown links
-      .replace(/[*#_~>\[\]()]/g, ' ')  // symbols and formatting
+      .replace(/[*#_~>\[\]()$%^{}\\]/g, ' ')  // symbols, asterisks, formatting
+      .replace(/x[₁₂₃₄]/g, 'x')        // subscripts
+      .replace(/±/g, 'plyus-minus')    // math signs
+      .replace(/\+/g, 'plyus')
+      .replace(/=/g, 'teng')
       .replace(/\s+/g, ' ')
       .trim();
 
@@ -58,34 +63,37 @@ export class VoiceAssistant {
       return;
     }
 
-    // Mood-specific speech rate modulation
-    let effectiveRate = options.rate ?? 1.0;
-    if (options.rate === undefined && options.mood) {
-      switch (options.mood) {
-        case 'strict':
-          effectiveRate = 1.12; // Faster, sharper, confident tempo
-          break;
-        case 'kind':
-          effectiveRate = 0.92; // Gentler, measured cadence
-          break;
-        case 'inspirational':
-          effectiveRate = 0.98; // Expressive, steady flow
-          break;
-        case 'classic':
-        default:
-          effectiveRate = 1.0; // Standard speed
-          break;
-      }
+    // Precise Voice Rate & Pitch according to user specifications:
+    // Qiz bola (Female): pitch = 1.32;
+    // O'g'il bola (Male): pitch = 0.84;
+    // Jahldor (Strict): rate = 1.15;
+    // Mehribon (Kind): rate = 0.90;
+    // Oddiy (Classic): pitch = 1.0; rate = 1.0;
+
+    let effectivePitch = 1.0;
+    if (options.gender === 'female') {
+      effectivePitch = 1.32;
+    } else if (options.gender === 'male') {
+      effectivePitch = 0.84;
     }
 
-    // Gender-specific speech pitch modulation
-    let effectivePitch = options.pitch ?? 1.0;
-    if (options.pitch === undefined && options.gender) {
-      effectivePitch = options.gender === 'female' ? 1.3 : 0.85;
+    let effectiveRate = 1.0;
+    const moodNormalized = (options.mood || '').toLowerCase();
+    if (moodNormalized === 'strict' || moodNormalized === 'jahldor') {
+      effectiveRate = 1.15;
+    } else if (moodNormalized === 'kind' || moodNormalized === 'mehribon') {
+      effectiveRate = 0.90;
+    } else if (moodNormalized === 'inspirational' || moodNormalized === 'ilhomlantiruvchi') {
+      effectiveRate = 0.98;
+    } else {
+      effectiveRate = 1.0;
     }
+
+    if (options.rate !== undefined) effectiveRate = options.rate;
+    if (options.pitch !== undefined) effectivePitch = options.pitch;
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = options.lang || 'en-US';
+    utterance.lang = options.lang || 'uz-UZ';
     utterance.rate = effectiveRate;
     utterance.pitch = effectivePitch;
     utterance.volume = options.volume ?? 1.0;
@@ -98,15 +106,15 @@ export class VoiceAssistant {
     const langVoices = voices.filter(
       (v) =>
         v.lang.toLowerCase().startsWith(targetLang) ||
-        (targetLang === 'uz' && v.lang.toLowerCase().includes('tr'))
+        (targetLang === 'uz' && v.lang.toLowerCase().includes('tr')) // Turkish phonetics map cleanly to Uzbek Latin
     );
 
     let matchedVoice: SpeechSynthesisVoice | undefined;
 
     if (options.gender && langVoices.length > 0) {
       const isFemale = options.gender === 'female';
-      const femaleKeywords = ['female', 'woman', 'zira', 'samantha', 'victoria', 'anna', 'irina', 'svetlana', 'yulduz', 'aygül'];
-      const maleKeywords = ['male', 'man', 'david', 'george', 'dmitry', 'pavel', 'guy', 'alex', 'murat'];
+      const femaleKeywords = ['female', 'woman', 'zira', 'samantha', 'victoria', 'anna', 'irina', 'svetlana', 'filiz', 'yelda'];
+      const maleKeywords = ['male', 'man', 'david', 'george', 'dmitry', 'pavel', 'guy', 'alex', 'ahmet', 'cem'];
       const keywords = isFemale ? femaleKeywords : maleKeywords;
 
       matchedVoice = langVoices.find((v) =>

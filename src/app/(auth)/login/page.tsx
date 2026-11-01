@@ -17,6 +17,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState('/dashboard');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const r = params.get('redirect');
+      if (r && r.startsWith('/')) {
+        setRedirectUrl(r);
+      }
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +38,8 @@ export default function LoginPage() {
       if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('creator')) {
         localStorage.setItem('mentorai_role', 'admin');
         localStorage.setItem('mentorai_user_email', email);
-        router.push('/admin');
+        document.cookie = 'mentorai_session=admin; path=/; max-age=2592000; SameSite=Lax';
+        router.push(redirectUrl === '/dashboard' ? '/admin' : redirectUrl);
         return;
       }
 
@@ -42,12 +54,14 @@ export default function LoginPage() {
 
       localStorage.setItem('mentorai_role', 'student');
       localStorage.setItem('mentorai_user_email', email || 'student@mentorai.uz');
-      router.push('/dashboard');
+      document.cookie = 'mentorai_session=active; path=/; max-age=2592000; SameSite=Lax';
+      router.push(redirectUrl);
     } catch (err: any) {
       console.warn('Auth notice:', err.message);
       localStorage.setItem('mentorai_role', 'student');
       localStorage.setItem('mentorai_user_email', email || 'student@mentorai.uz');
-      router.push('/dashboard');
+      document.cookie = 'mentorai_session=active; path=/; max-age=2592000; SameSite=Lax';
+      router.push(redirectUrl);
     } finally {
       setIsLoading(false);
     }
@@ -59,13 +73,15 @@ export default function LoginPage() {
       setPassword('admin2026pass');
       localStorage.setItem('mentorai_role', 'admin');
       localStorage.setItem('mentorai_user_email', 'creator@mentorai.uz');
-      router.push('/admin');
+      document.cookie = 'mentorai_session=admin; path=/; max-age=2592000; SameSite=Lax';
+      router.push(redirectUrl === '/dashboard' ? '/admin' : redirectUrl);
     } else {
       setEmail('student@mentorai.uz');
       setPassword('student123pass');
       localStorage.setItem('mentorai_role', 'student');
       localStorage.setItem('mentorai_user_email', 'student@mentorai.uz');
-      router.push('/dashboard');
+      document.cookie = 'mentorai_session=active; path=/; max-age=2592000; SameSite=Lax';
+      router.push(redirectUrl);
     }
   };
 

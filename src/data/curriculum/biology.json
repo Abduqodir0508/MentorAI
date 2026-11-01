@@ -1,0 +1,57 @@
+[
+  {
+    "id": "bio-01",
+    "topic": "Hujayra nazariyasi: O'simlik va hayvon hujayralari farqi",
+    "track": "medicine",
+    "level": "Tibbiyot litseyi (Sitologiya)",
+    "theory": "Barcha tirik organizmlarning tuzilish va funksional birligi hujayradir. O'simlik hujayrasi hayvon hujayrasidan sellyuloza qobiq, plastidalar (xloroplast, xromoplast, leykoplast) va markaziy yirik vakuolasi mavjudligi bilan farq qiladi. Mitoxondriya esa ikkalasida ham ATF (energiya) ishlab chiqaradi.",
+    "formula": "O'simlik = Qobiq + Xloroplast + Vakuola  |  Hayvon = Glikokaliks + Sentriolalar",
+    "example": {
+      "problem": "O'simlik hujayrasida fotosintez va ATF sintezi qaysi organoidlarda kechadi?",
+      "solution": "Fotosintez jarayoni xloroplastlarda, nafas olish va universal energiya (ATF) sintezi esa mitoxondriyalarda kechadi."
+    },
+    "practice": {
+      "question": "Quyidagi organoidlardan qaysi biri faqat o'simlik hujayrasiga xos?",
+      "options": ["Xloroplast", "Ribosoma", "Mitoxondriya", "Endoplazmatik to'r"],
+      "correct": "Xloroplast",
+      "hint": "Xloroplastlarda xlorofill pigmenti bo'lib, o'simliklarga yashil rang beradi va fotosintez qiladi."
+    }
+  },
+  {
+    "id": "bio-02",
+    "topic": "Genetika: Mendelning 1- va 2-qonunlari",
+    "track": "medicine",
+    "level": "Litsey imtihoni (Genetika)",
+    "theory": "Mendelning 1-qonuni (Bir xillik qonuni): Bir-biridan bitta belgi bilan farq qiluvchi gomozigotali organizmlar (AA × aa) chatishtirilganda, F1 bo'g'inda barcha duragaylar bir xil genotip (Aa) va fenotipga ega bo'ladi. 2-qonun (Ajralish qonuni): F1 duragaylari (Aa × Aa) o'zaro chatishtirilganda, F2 bo'g'inda fenotip bo'yicha 3:1, genotip bo'yicha 1:2:1 nisbatda ajralish kuzatiladi.",
+    "formula": "F1: AA × aa → 100% Aa  |  F2: Aa × Aa → 1 AA : 2 Aa : 1 aa (Fenotip: 3 dominant : 1 retsessiv)",
+    "example": {
+      "problem": "Sariq no'xat (Aa) bilan sariq no'xat (Aa) chatishtirilsa, yashil (retsessiv aa) no'xatlar ulushi necha foiz bo'ladi?",
+      "solution": "Aa × Aa chatishtirilganda avlodlar: AA (25%), Aa (50%), aa (25%). Yashil rang faqat 'aa' retsessiv gomozigotada namoyon bo'ladi, ya'ni 25% (1/4)."
+    },
+    "practice": {
+      "question": "Mendelning 2-qonunida fenotip bo'yicha ajralish nisbati qanday?",
+      "options": ["3:1", "1:2:1", "9:3:3:1", "1:1"],
+      "correct": "3:1",
+      "hint": "3 ta dominant belgili organizmga 1 ta retsessiv belgili organizm to'g'ri keladi (3:1)."
+    }
+  },
+  {
+    "id": "bio-03",
+    "topic": "Odam anatomiyasi: Yurak-qon tomir sistemasi",
+    "track": "medicine",
+    "level": "Tibbiyot litseyi standarti (Anatomiya)",
+    "theory": "Odam yuragi 4 kamerali: 2 ta bo'lmacha va 2 ta qorinchadan iborat. Katta qon aylanish doirasi chap qorinchadan boshlanib, butun tanani kislorodli (arterial) qon bilan ta'minlaydi va o'ng bo'lmachada tugaydi. Kichik qon aylanish doirasi o'ng qorinchadan o'pka arteriyasi orqali boshlanib, chap bo'lmachada tugaydi.",
+    "formula": "Katta doira: Chap qorincha → Aorta → Tana to'qimalari → O'ng bo'lmacha  |  Kichik doira: O'ng qorincha → O'pka → Chap bo'lmacha",
+    "example": {
+      "problem": "Yurakning qaysi qismidan eng qalin devorli mushak va eng yuqori bosimga ega aorta qon tomiri chiqadi?",
+      "solution": "Aorta butun tanaga qon haydovchi eng yirik tomir bo'lib, chap qorinchadan (chunki uning mushak qavati eng qalin) boshlanadi."
+    },
+    "practice": {
+      "question": "Kichik (o'pka) qon aylanish doirasi yurakning qaysi bo'limida tugaydi?",
+      "options": ["Chap bo'lmacha", "O'ng qorincha", "Chap qorincha", "O'ng bo'lmacha"],
+      "correct": "Chap bo'lmacha",
+      "hint": "O'pkada kislorodga boyigan qon 4 ta o'pka venasi orqali chap bo'lmachaga quyiladi."
+    }
+  }
+]
+
