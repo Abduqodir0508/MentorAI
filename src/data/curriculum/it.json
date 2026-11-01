@@ -1,0 +1,57 @@
+[
+  {
+    "id": "it-01",
+    "topic": "Semantik HTML5 tuzilishi va teglarning vazifasi",
+    "track": "it",
+    "level": "Boshlang'ich poydevor (Informatika)",
+    "theory": "Semantik HTML teglari shunchaki quti bo'lmasdan, ma'lumotning vazifasi va mazmun-mohiyatini bildiradi. Qidiruv tizimlari (SEO) va maxsus imkoniyatlar (Screen Readers) aynan semantik teglarga tayanadi.",
+    "formula": "<header>, <nav>, <main>, <article>, <section>, <footer>",
+    "example": {
+      "problem": "Veb-sahifaning asosiy navigatsiya havolalarini qaysi semantik teg ichiga o'rash to'g'ri?",
+      "solution": "Navigatsiya havolalari uchun HTML5 standarti bo'yicha maxsus <nav> tegi ishlatiladi: <nav><a href=\"#\">Bosh sahifa</a></nav>."
+    },
+    "practice": {
+      "question": "Quyidagi teglardan qaysi biri NO-semantik hisoblanadi?",
+      "options": ["<div>", "<header>", "<article>", "<main>"],
+      "correct": "<div>",
+      "hint": "<div> va <span> teglarida o'ziga xos ma'no yo'q, ular faqat neytral konteyner vazifasini bajaradi."
+    }
+  },
+  {
+    "id": "it-02",
+    "topic": "Sanoq sistemalari: 2-lik va 10-lik o'rtasida o'tish",
+    "track": "it",
+    "level": "Litsey imtihoni standarti (7-8 sinf)",
+    "theory": "Kompyuter faqat 0 va 1 raqamlaridan iborat ikkilik sanoq sistemasida ishlaydi. Ikkilik sonni o'nlikka o'tkazish uchun har bir raqam 2 ning mos darajalariga ko'paytirilib yig'iladi.",
+    "formula": "N₁₀ = aₙ·2ⁿ + ... + a₁·2¹ + a₀·2⁰",
+    "example": {
+      "problem": "1101₂ sonini o'nlik sanoq sistemasiga o'tkazing.",
+      "solution": "1·2³ + 1·2² + 0·2¹ + 1·2⁰ = 8 + 4 + 0 + 1 = 13₁₀."
+    },
+    "practice": {
+      "question": "10110₂ ikkilik soni o'nlik sanoq sistemasida nechaga teng?",
+      "options": ["22", "20", "24", "18"],
+      "correct": "22",
+      "hint": "16 + 0 + 4 + 2 + 0 = 22."
+    }
+  },
+  {
+    "id": "it-03",
+    "topic": "Algoritmik chiziqli va tarmoqlanuvchi tuzilmalar",
+    "track": "it",
+    "level": "Litsey imtihoni (8-9 sinf)",
+    "theory": "Tarmoqlanuvchi algoritmlarda ma'lum shart tekshiriladi (if / else). Shart rost (true) bo'lsa bitta yo'l, yolg'on (false) bo'lsa boshqa yo'l bo'yicha ko'rsatmalar bajariladi.",
+    "formula": "if (shart) { amallar_1 } else { amallar_2 }",
+    "example": {
+      "problem": "a = 5, b = 8. Agar a > b bo'lsa c = a - b, aks holda c = a + b. c ning qiymatini toping.",
+      "solution": "5 > 8 sharti yolg'on, demak else qismiga o'tamiz: c = 5 + 8 = 13."
+    },
+    "practice": {
+      "question": "x = 10 bo'lganda: if (x % 2 === 0) y = x / 2 else y = x * 2. y nechaga teng bo'ladi?",
+      "options": ["5", "20", "10", "2"],
+      "correct": "5",
+      "hint": "10 soni 2 ga qoldiqsiz bo'linadi (10 % 2 === 0 sharti rost)."
+    }
+  }
+]
+

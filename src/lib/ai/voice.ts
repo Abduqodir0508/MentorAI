@@ -4,11 +4,15 @@
  * Supports Uzbek, Russian, and English
  */
 
+import { TutorMood, TutorGender } from '@/types';
+
 export interface SpeechOptions {
   lang?: 'uz-UZ' | 'ru-RU' | 'en-US' | string;
   rate?: number;
   pitch?: number;
   volume?: number;
+  gender?: TutorGender;
+  mood?: TutorMood;
   onStart?: () => void;
   onEnd?: () => void;
   onError?: (error: any) => void;
@@ -54,19 +58,66 @@ export class VoiceAssistant {
       return;
     }
 
+    // Mood-specific speech rate modulation
+    let effectiveRate = options.rate ?? 1.0;
+    if (options.rate === undefined && options.mood) {
+      switch (options.mood) {
+        case 'strict':
+          effectiveRate = 1.12; // Faster, sharper, confident tempo
+          break;
+        case 'kind':
+          effectiveRate = 0.92; // Gentler, measured cadence
+          break;
+        case 'inspirational':
+          effectiveRate = 0.98; // Expressive, steady flow
+          break;
+        case 'classic':
+        default:
+          effectiveRate = 1.0; // Standard speed
+          break;
+      }
+    }
+
+    // Gender-specific speech pitch modulation
+    let effectivePitch = options.pitch ?? 1.0;
+    if (options.pitch === undefined && options.gender) {
+      effectivePitch = options.gender === 'female' ? 1.3 : 0.85;
+    }
+
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = options.lang || 'en-US';
-    utterance.rate = options.rate ?? 1.0;
-    utterance.pitch = options.pitch ?? 1.0;
+    utterance.rate = effectiveRate;
+    utterance.pitch = effectivePitch;
     utterance.volume = options.volume ?? 1.0;
 
-    // Pick a matching voice if available
+    // Pick a matching voice if available, prioritizing language and gender
     const voices = synth.getVoices();
     const targetLang = utterance.lang.split('-')[0].toLowerCase();
-    const matchedVoice = voices.find((v) => 
-      v.lang.toLowerCase().startsWith(targetLang) ||
-      (targetLang === 'uz' && v.lang.toLowerCase().includes('tr')) // Fallback Turkish accent for Turkic Uzbek phonetics if uz voice not installed
+    
+    // First, find all voices matching the target language
+    const langVoices = voices.filter(
+      (v) =>
+        v.lang.toLowerCase().startsWith(targetLang) ||
+        (targetLang === 'uz' && v.lang.toLowerCase().includes('tr'))
     );
+
+    let matchedVoice: SpeechSynthesisVoice | undefined;
+
+    if (options.gender && langVoices.length > 0) {
+      const isFemale = options.gender === 'female';
+      const femaleKeywords = ['female', 'woman', 'zira', 'samantha', 'victoria', 'anna', 'irina', 'svetlana', 'yulduz', 'aygül'];
+      const maleKeywords = ['male', 'man', 'david', 'george', 'dmitry', 'pavel', 'guy', 'alex', 'murat'];
+      const keywords = isFemale ? femaleKeywords : maleKeywords;
+
+      matchedVoice = langVoices.find((v) =>
+        keywords.some((kw) => v.name.toLowerCase().includes(kw))
+      );
+    }
+
+    // Fallback to any voice matching target language
+    if (!matchedVoice && langVoices.length > 0) {
+      matchedVoice = langVoices[0];
+    }
 
     if (matchedVoice) {
       utterance.voice = matchedVoice;

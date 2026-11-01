@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, Volume2, VolumeX, RotateCcw, BrainCircuit } from 'lucide-react';
-import { TutorMessage, TrackType } from '@/types';
+import { TutorMessage, TrackType, TutorMood, TutorGender } from '@/types';
 import { ChatBubble } from './ChatBubble';
 import { VoiceInput } from './VoiceInput';
 import { LanguageSelector } from './LanguageSelector';
@@ -20,6 +20,10 @@ interface TutorInterfaceProps {
   onAvatarStateChange?: (state: AvatarState) => void;
   autoSpeak?: boolean;
   onAutoSpeakChange?: (autoSpeak: boolean) => void;
+  mood?: TutorMood;
+  onMoodChange?: (m: TutorMood) => void;
+  gender?: TutorGender;
+  onGenderChange?: (g: TutorGender) => void;
 }
 
 export function TutorInterface({
@@ -31,17 +35,51 @@ export function TutorInterface({
   onAvatarStateChange,
   autoSpeak: externalAutoSpeak,
   onAutoSpeakChange,
+  mood: externalMood,
+  onMoodChange,
+  gender: externalGender,
+  onGenderChange,
 }: TutorInterfaceProps) {
   const { language, setLanguage, t } = useLanguage();
   const [trackId, setTrackId] = useState<TrackType>(initialTrackId);
   const [internalAutoSpeak, setInternalAutoSpeak] = useState(false);
   const [internalAvatarState, setInternalAvatarState] = useState<AvatarState>('idle');
+  const [internalMood, setInternalMood] = useState<TutorMood>('classic');
+  const [internalGender, setInternalGender] = useState<TutorGender>('female');
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Sync state between internal and external
   const autoSpeak = externalAutoSpeak !== undefined ? externalAutoSpeak : internalAutoSpeak;
   const avatarState = externalAvatarState !== undefined ? externalAvatarState : internalAvatarState;
+  const mood = externalMood !== undefined ? externalMood : internalMood;
+  const gender = externalGender !== undefined ? externalGender : internalGender;
+
+  // Load persisted mood and gender from localStorage
+  useEffect(() => {
+    const savedMood = localStorage.getItem('mentorai_tutor_mood') as TutorMood;
+    if (savedMood) {
+      setInternalMood(savedMood);
+      onMoodChange?.(savedMood);
+    }
+    const savedGender = localStorage.getItem('mentorai_tutor_gender') as TutorGender;
+    if (savedGender) {
+      setInternalGender(savedGender);
+      onGenderChange?.(savedGender);
+    }
+  }, []);
+
+  const handleMoodSelect = (m: TutorMood) => {
+    setInternalMood(m);
+    onMoodChange?.(m);
+    localStorage.setItem('mentorai_tutor_mood', m);
+  };
+
+  const handleGenderSelect = (g: TutorGender) => {
+    setInternalGender(g);
+    onGenderChange?.(g);
+    localStorage.setItem('mentorai_tutor_gender', g);
+  };
 
   const setAvatarState = (state: AvatarState) => {
     setInternalAvatarState(state);
@@ -173,6 +211,8 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
           trackId,
           language,
           isVoiceMode: autoSpeak,
+          mood,
+          gender,
         }),
       });
 
@@ -189,11 +229,13 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
 
       setMessages((prev) => [...prev, aiMsg]);
 
-      // If auto-speak enabled, synthesize speech in target language and update avatar to 'speaking'
+      // If auto-speak enabled, synthesize speech in target language with gender pitch & mood rate
       if (autoSpeak) {
         const langCode = language === 'uz' ? 'uz-UZ' : language === 'ru' ? 'ru-RU' : 'en-US';
         VoiceAssistant.speak(aiMsg.text, {
           lang: langCode,
+          gender,
+          mood,
           onStart: () => setAvatarState('speaking'),
           onEnd: () => setAvatarState('idle'),
           onError: () => setAvatarState('idle'),
@@ -224,6 +266,23 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
     }
   };
 
+  // Preloaded question from Digital Reader (?prompt=...&track=...)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const preloadedPrompt = params.get('prompt');
+      const preloadedTrack = params.get('track');
+      if (preloadedTrack) {
+        setTrackId(preloadedTrack as TrackType);
+      }
+      if (preloadedPrompt) {
+        // Clean URL param without page reload
+        window.history.replaceState({}, '', window.location.pathname);
+        handleSendMessage(preloadedPrompt);
+      }
+    }
+  }, []);
+
   const handleClearChat = () => {
     VoiceAssistant.stopSpeaking();
     setAvatarState('idle');
@@ -247,10 +306,22 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
     { id: 'languages' as const, label: t.tracks.languages.shortTitle, icon: '🌐' },
   ];
 
+  const moods = [
+    { id: 'classic' as const, label: '🎓 Oddiy', labelRu: '🎓 Классик', labelEn: '🎓 Classic' },
+    { id: 'strict' as const, label: '😠 Jahldor', labelRu: '😠 Строгий', labelEn: '😠 Strict' },
+    { id: 'kind' as const, label: '💖 Mehribon', labelRu: '💖 Добрый', labelEn: '💖 Kind' },
+    { id: 'inspirational' as const, label: '✨ Ilhomlantiruvchi', labelRu: '✨ Вдохновляющий', labelEn: '✨ Inspirational' },
+  ];
+
+  const genders = [
+    { id: 'female' as const, label: '👩 Qiz bola', labelRu: '👩 Женский', labelEn: '👩 Female' },
+    { id: 'male' as const, label: '👨 O\'g\'il bola', labelRu: '👨 Мужской', labelEn: '👨 Male' },
+  ];
+
   return (
     <div className="flex flex-col h-[740px] max-h-[82vh] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl overflow-hidden animate-in fade-in">
       {/* Top Header Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-md">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 px-5 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 backdrop-blur-md">
         {/* 5 Tracks Tabs */}
         <div className="flex items-center gap-1 p-1 bg-slate-200/60 dark:bg-slate-800 rounded-xl overflow-x-auto max-w-full">
           {tracks.map((tItem) => (
@@ -279,6 +350,8 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
             state={avatarState}
             language={language}
             autoSpeak={autoSpeak}
+            mood={mood}
+            gender={gender}
             onStopSpeaking={handleStopSpeaking}
           />
 
@@ -313,12 +386,65 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
         </div>
       </div>
 
+      {/* Secondary Bar: Persona Mood Selector & Voice Gender Selector */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 bg-slate-100/60 dark:bg-slate-800/40 border-b border-slate-200/60 dark:border-slate-800 text-xs">
+        {/* Mood Selector Buttons */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
+            Kayfiyat:
+          </span>
+          <div className="flex items-center gap-1 p-0.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800">
+            {moods.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => handleMoodSelect(m.id)}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all',
+                  mood === m.id
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                )}
+              >
+                {language === 'ru' ? m.labelRu : language === 'en' ? m.labelEn : m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Gender Voice Selector */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
+            Ovoz:
+          </span>
+          <div className="flex items-center gap-1 p-0.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800">
+            {genders.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => handleGenderSelect(g.id)}
+                className={cn(
+                  'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all',
+                  gender === g.id
+                    ? 'bg-violet-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                )}
+              >
+                {language === 'ru' ? g.labelRu : language === 'en' ? g.labelEn : g.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.map((message) => (
           <ChatBubble
             key={message.id}
             message={message}
+            gender={gender}
+            mood={mood}
             onSuggestionClick={(suggestion) => handleSendMessage(suggestion)}
             onSpeakStart={() => setAvatarState('speaking')}
             onSpeakEnd={() => setAvatarState('idle')}

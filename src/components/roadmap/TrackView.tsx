@@ -19,9 +19,11 @@ import { Badge } from '@/components/ui/badge';
 import { CurriculumRoadmap } from '@/components/roadmap/CurriculumRoadmap';
 import { LessonModal } from '@/components/roadmap/LessonModal';
 import { TrackProgressBar } from '@/components/roadmap/TrackProgressBar';
+import { DigitalReader } from '@/components/reader/DigitalReader';
 import { getTrackBySlugOrId, getLessonsByTrackId } from '@/lib/curriculum';
 import { useLanguage } from '@/context/LanguageContext';
 import { Lesson, TrackType } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface TrackViewProps {
   trackId: TrackType;
@@ -37,6 +39,7 @@ export function TrackView({ trackId }: TrackViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasSubscription, setHasSubscription] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState<'reader' | 'roadmap'>('reader');
 
   useEffect(() => {
     const role = localStorage.getItem('mentorai_role');
@@ -211,26 +214,64 @@ export function TrackView({ trackId }: TrackViewProps) {
         </div>
       )}
 
-      {/* Progressive Roadmap & Lessons */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            {t.tracks.syllabusTitle}
-          </h3>
-          <p className="text-xs text-slate-500">
-            {t.tracks.syllabusSub}
-          </p>
-        </div>
+      {/* Tab Switcher: Digital Reader vs Roadmap */}
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-3">
+        <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => setActiveTab('reader')}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all",
+              activeTab === 'reader'
+                ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            )}
+          >
+            <span>📖</span>
+            <span>{language === 'uz' ? 'Interaktiv Raqamli Darslik' : language === 'ru' ? 'Интерактивный Учебник' : 'Digital Reader'}</span>
+          </button>
 
-        <CurriculumRoadmap
-          trackId={trackId}
-          lessons={lessons}
-          completedLessonIds={completedLessonIds}
-          hasSubscription={hasSubscription}
-          isAdmin={isAdmin}
-          onSelectLesson={handleOpenLesson}
-        />
+          <button
+            type="button"
+            onClick={() => setActiveTab('roadmap')}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all",
+              activeTab === 'roadmap'
+                ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            )}
+          >
+            <span>🗺️</span>
+            <span>{language === 'uz' ? 'O\'quv Xaritasi va Testlar' : language === 'ru' ? 'Карта Обучения и Тесты' : 'Curriculum Roadmap'}</span>
+          </button>
+        </div>
       </div>
+
+      {/* View Content */}
+      {activeTab === 'reader' ? (
+        <DigitalReader trackId={trackId} />
+      ) : (
+        /* Progressive Roadmap & Lessons */
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              {t.tracks.syllabusTitle}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {t.tracks.syllabusSub}
+            </p>
+          </div>
+
+          <CurriculumRoadmap
+            trackId={trackId}
+            lessons={lessons}
+            completedLessonIds={completedLessonIds}
+            hasSubscription={hasSubscription}
+            isAdmin={isAdmin}
+            onSelectLesson={handleOpenLesson}
+          />
+        </div>
+      )}
 
       {/* Interactive Lesson Modal */}
       <LessonModal

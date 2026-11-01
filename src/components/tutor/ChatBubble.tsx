@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Volume2, VolumeX, Copy, Check, Bot, User, Sparkles } from 'lucide-react';
-import { TutorMessage } from '@/types';
+import { TutorMessage, TutorGender, TutorMood } from '@/types';
 import { VoiceAssistant } from '@/lib/ai/voice';
 import { cn } from '@/lib/utils';
 
@@ -11,9 +11,11 @@ interface ChatBubbleProps {
   onSuggestionClick?: (text: string) => void;
   onSpeakStart?: () => void;
   onSpeakEnd?: () => void;
+  gender?: TutorGender;
+  mood?: TutorMood;
 }
 
-export function ChatBubble({ message, onSuggestionClick, onSpeakStart, onSpeakEnd }: ChatBubbleProps) {
+export function ChatBubble({ message, onSuggestionClick, onSpeakStart, onSpeakEnd, gender, mood }: ChatBubbleProps) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [copied, setCopied] = useState(false);
   const isAI = message.sender === 'ai';
@@ -29,6 +31,8 @@ export function ChatBubble({ message, onSuggestionClick, onSpeakStart, onSpeakEn
       const langCode = message.language === 'uz' ? 'uz-UZ' : message.language === 'ru' ? 'ru-RU' : 'en-US';
       VoiceAssistant.speak(message.text, {
         lang: langCode,
+        gender,
+        mood,
         onStart: () => {
           setIsSpeaking(true);
           onSpeakStart?.();

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Sparkles, Volume2, VolumeX, Square, BrainCircuit, Bot, Radio } from 'lucide-react';
-import { TrackType } from '@/types';
+import { TrackType, TutorMood, TutorGender } from '@/types';
 import { cn } from '@/lib/utils';
 
 export type AvatarState = 'idle' | 'thinking' | 'speaking';
@@ -14,6 +14,8 @@ interface AIAvatarWidgetProps {
   autoSpeak?: boolean;
   onToggleAutoSpeak?: () => void;
   onStopSpeaking?: () => void;
+  mood?: TutorMood;
+  gender?: TutorGender;
   compact?: boolean;
   className?: string;
 }
@@ -25,6 +27,8 @@ export function AIAvatarWidget({
   autoSpeak = false,
   onToggleAutoSpeak,
   onStopSpeaking,
+  mood = 'classic',
+  gender = 'female',
   compact = false,
   className,
 }: AIAvatarWidgetProps) {
@@ -157,10 +161,21 @@ export function AIAvatarWidget({
       <div className="relative flex flex-col items-center text-center space-y-4">
         {/* Header Tag */}
         <div className="flex items-center justify-between w-full px-1">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/60 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 shadow-sm">
-            <Sparkles className="w-3 h-3 text-indigo-500" />
-            MentorAI Copilot
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/60 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 shadow-sm">
+              <Sparkles className="w-3 h-3 text-indigo-500" />
+              <span>{gender === 'female' ? '👩' : '👨'}</span>
+              <span>
+                {mood === 'strict'
+                  ? '😠 Jahldor'
+                  : mood === 'kind'
+                  ? '💖 Mehribon'
+                  : mood === 'inspirational'
+                  ? '✨ Ilhom'
+                  : '🎓 Oddiy'}
+              </span>
+            </span>
+          </div>
 
           {/* Voice Mode Toggle Quick Access */}
           {onToggleAutoSpeak && (

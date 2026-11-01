@@ -4,7 +4,14 @@ import { MENTOR_SYSTEM_PROMPTS } from "@/lib/ai/prompts";
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, trackId = "it", language = "uz", isVoiceMode = false } = await req.json();
+    const {
+      messages,
+      trackId = "it",
+      language = "uz",
+      isVoiceMode = false,
+      mood = "classic",
+      gender = "female",
+    } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: "Messages array is required" }, { status: 400 });
@@ -17,6 +24,14 @@ export async function POST(req: NextRequest) {
       MENTOR_SYSTEM_PROMPTS.tracks[trackId as keyof typeof MENTOR_SYSTEM_PROMPTS.tracks] ||
       MENTOR_SYSTEM_PROMPTS.tracks.it;
 
+    // Mood & Gender prompt selection
+    const moodInstruction =
+      MENTOR_SYSTEM_PROMPTS.moods[mood as keyof typeof MENTOR_SYSTEM_PROMPTS.moods] ||
+      MENTOR_SYSTEM_PROMPTS.moods.classic;
+    const genderInstruction =
+      MENTOR_SYSTEM_PROMPTS.genders[gender as keyof typeof MENTOR_SYSTEM_PROMPTS.genders] ||
+      MENTOR_SYSTEM_PROMPTS.genders.female;
+
     const langName =
       language === "uz" ? "Uzbek (O'zbek tili, Lotin imlosi)" : language === "ru" ? "Russian (Русский язык)" : "English";
 
@@ -24,12 +39,17 @@ export async function POST(req: NextRequest) {
 
 Current Track Context: ${trackInstruction}
 Selected Output Language: ${langName}
+Tutor Personality & Emotional Mood: ${moodInstruction}
+Tutor Voice Gender Persona: ${genderInstruction}
 
 CRITICAL PEDAGOGICAL INSTRUCTIONS:
-1. EXPLAIN DIRECTLY & DEEPLY:
-   - When the student asks a concept question (e.g., "Semantic HTML teglar nima uchun kerak?", "Viyet teoremasi nima?", "Hujayra organoidlari qanday ishlaydi?"), NEVER dodge the question or respond with empty placeholders or repetitive loops.
-   - Explain the concept DIRECTLY, clearly, and thoroughly with concrete real-world code snippets, mathematical derivations, or scientific principles.
-   - Break down WHY this topic is tested on competitive entrance exams and how to remember it.
+1. EXPLAIN DIRECTLY & DEEPLY WITH EMOTIONAL PERSONA:
+   - When the student asks a concept question (e.g., "Semantic HTML teglar nima uchun kerak?", "Viyet teoremasi nima?", "Hujayra organoidlari qanday ishlaydi?"), explain the concept DIRECTLY, thoroughly, with concrete code snippets, mathematical derivations, or scientific principles.
+   - Strictly embody the requested mood (${mood}):
+     * If STRICT (Jahldor/Talabchan): Be sharp, demanding, direct, and uncompromising. Demand perfection, no slacking! e.g., "Diqqat qil! Litsey imtihonida bu eng oddiy savol, xatoga o'rin yo'q!"
+     * If KIND (Mehribon): Be extremely warm, patient, loving, and encouraging. e.g., "Barakalla, savolingiz ajoyib! Keling, buni juda oson qilib tushunib olamiz."
+     * If INSPIRATIONAL (Ilhomlantiruvchi): Be poetic, passionate, and intellectual. e.g., "Ilm — bu koinot mo'jizasi! Ushbu tushuncha orqali siz buyuk maqsadlar sari qadam tashlayapsiz."
+     * If CLASSIC (Oddiy): Polite, objective, balanced academic Socratic tutor.
 2. STRICT LANGUAGE CONSISTENCY:
    - Reply 100% in ${langName}. Do NOT mix random English or Russian words when Uzbek is selected, and vice-versa.
 3. VOICE SYNTHESIS READY:
@@ -99,7 +119,7 @@ CRITICAL PEDAGOGICAL INSTRUCTIONS:
     }
 
     // High quality pedagogical fallback responder if API is unreachable
-    const responseText = generatePedagogicalFallback(lastUserMessage, trackId, language);
+    const responseText = generatePedagogicalFallback(lastUserMessage, trackId, language, mood, gender);
     return NextResponse.json({
       text: responseText,
       suggestions: generateContextualSuggestions(lastUserMessage, trackId, language),
@@ -113,8 +133,33 @@ CRITICAL PEDAGOGICAL INSTRUCTIONS:
   }
 }
 
-function generatePedagogicalFallback(userQuery: string, trackId: string, language: string): string {
+function generatePedagogicalFallback(
+  userQuery: string,
+  trackId: string,
+  language: string,
+  mood: string = "classic",
+  gender: string = "female"
+): string {
   const q = userQuery.toLowerCase();
+
+  let moodPrefix = "";
+  if (language === "uz") {
+    if (mood === "strict") {
+      moodPrefix = "Diqqat bilan tingla! Imtihonga vaqt oz qoldi, shuning uchun chalg'imasdan tushunib ol:\n\n";
+    } else if (mood === "kind") {
+      moodPrefix = "Barakalla, savolingiz ajoyib! Hech xavotir olmang, keling buni birgalikda oson va tushunarli tilda ko'rib chiqamiz:\n\n";
+    } else if (mood === "inspirational") {
+      moodPrefix = "Ilm sari qo'yilgan har bir qadam mo'jizadir! Bu mavzu sizni yangi yutuqlar sari yetaklaydi:\n\n";
+    }
+  } else if (language === "ru") {
+    if (mood === "strict") {
+      moodPrefix = "Слушай предельно внимательно! На экзамене счет идет на минуты, сосредоточься:\n\n";
+    } else if (mood === "kind") {
+      moodPrefix = "Прекрасный вопрос! Не переживайте, давайте разберем это шаг за шагом, всё обязательно получится:\n\n";
+    } else if (mood === "inspirational") {
+      moodPrefix = "Знание — это великая сила! Этот принцип открывает двери в мир науки и побед:\n\n";
+    }
+  }
 
   // UZBEK LOCALIZATION
   if (language === "uz") {

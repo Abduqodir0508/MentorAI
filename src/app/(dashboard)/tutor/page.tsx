@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { VoiceAssistant } from '@/lib/ai/voice';
 import { useLanguage } from '@/context/LanguageContext';
+import { TutorMood, TutorGender } from '@/types';
 
 export default function TutorPage() {
   const { t, language } = useLanguage();
@@ -16,6 +17,8 @@ export default function TutorPage() {
   const [userName, setUserName] = useState('Student');
   const [avatarState, setAvatarState] = useState<AvatarState>('idle');
   const [autoSpeak, setAutoSpeak] = useState(false);
+  const [mood, setMood] = useState<TutorMood>('classic');
+  const [gender, setGender] = useState<TutorGender>('female');
 
   useEffect(() => {
     const savedRole = localStorage.getItem('mentorai_role') as 'student' | 'admin';
@@ -23,6 +26,12 @@ export default function TutorPage() {
 
     const savedName = localStorage.getItem('mentorai_user_name');
     if (savedName) setUserName(savedName);
+
+    const savedMood = localStorage.getItem('mentorai_tutor_mood') as TutorMood;
+    if (savedMood) setMood(savedMood);
+
+    const savedGender = localStorage.getItem('mentorai_tutor_gender') as TutorGender;
+    if (savedGender) setGender(savedGender);
   }, []);
 
   const handleStopSpeaking = () => {
@@ -84,6 +93,10 @@ export default function TutorPage() {
             onAvatarStateChange={setAvatarState}
             autoSpeak={autoSpeak}
             onAutoSpeakChange={setAutoSpeak}
+            mood={mood}
+            onMoodChange={setMood}
+            gender={gender}
+            onGenderChange={setGender}
           />
         </div>
 
@@ -94,6 +107,8 @@ export default function TutorPage() {
             state={avatarState}
             language={language}
             autoSpeak={autoSpeak}
+            mood={mood}
+            gender={gender}
             onToggleAutoSpeak={handleToggleAutoSpeak}
             onStopSpeaking={handleStopSpeaking}
           />

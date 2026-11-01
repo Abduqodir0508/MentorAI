@@ -227,6 +227,29 @@ export interface StudentRoadmap {
   }[];
 }
 
+export type TutorMood = 'classic' | 'strict' | 'kind' | 'inspirational';
+
+export type TutorGender = 'female' | 'male';
+
+export interface BookModule {
+  id: string;
+  topic: string;
+  track: TrackType | string;
+  level: string;
+  theory: string;
+  formula: string;
+  example: {
+    problem: string;
+    solution: string;
+  };
+  practice: {
+    question: string;
+    options: string[];
+    correct: string;
+    hint: string;
+  };
+}
+
 export interface TutorMessage {
   id: string;
   sender: 'ai' | 'user';
