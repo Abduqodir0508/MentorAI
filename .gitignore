@@ -17,8 +17,11 @@
 .DS_Store
 *.pem
 
-# Local env files
+# Environment & Secret files - strictly NEVER push real credentials
+.env
+.env.*
 .env*.local
+!.env.example
 
 # Vercel
 .vercel
