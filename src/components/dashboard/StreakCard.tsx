@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Flame, Calendar, Trophy } from 'lucide-react';
+import { Flame, Trophy } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface StreakCardProps {
   streakDays?: number;
@@ -10,8 +11,14 @@ interface StreakCardProps {
 }
 
 export function StreakCard({ streakDays = 5, longestStreak = 12 }: StreakCardProps) {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const activeDays = [true, true, true, true, true, false, false]; // Current streak visualization
+  const { t, language } = useLanguage();
+
+  const daysUz = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
+  const daysRu = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const daysEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  const days = language === 'uz' ? daysUz : language === 'ru' ? daysRu : daysEn;
+  const activeDays = [true, true, true, true, true, false, false];
 
   return (
     <Card className="p-5 overflow-hidden relative">
@@ -21,14 +28,14 @@ export function StreakCard({ streakDays = 5, longestStreak = 12 }: StreakCardPro
             <Flame className="w-5 h-5 fill-amber-500" />
           </div>
           <div>
-            <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">Study Streak</h4>
-            <p className="text-xs text-slate-500">{streakDays} consecutive days of practice</p>
+            <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">{t.dashboard.studyStreakTitle}</h4>
+            <p className="text-xs text-slate-500">{streakDays} {t.dashboard.streakSub}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-1 text-xs font-semibold text-slate-400">
           <Trophy className="w-3.5 h-3.5 text-amber-500" />
-          <span>Record: {longestStreak}d</span>
+          <span>{t.dashboard.record}: {longestStreak}d</span>
         </div>
       </div>
 
@@ -54,7 +61,7 @@ export function StreakCard({ streakDays = 5, longestStreak = 12 }: StreakCardPro
       </div>
 
       <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
-        <span>Study at least 20 mins today to keep streak alive!</span>
+        <span>{t.dashboard.streakReminder}</span>
       </div>
     </Card>
   );

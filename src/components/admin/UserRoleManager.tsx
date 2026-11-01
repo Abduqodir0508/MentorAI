@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Shield, ShieldCheck, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
+import { Search, ShieldCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface StudentRecord {
   id: string;
@@ -19,6 +20,7 @@ interface StudentRecord {
 }
 
 export function UserRoleManager() {
+  const { t, language } = useLanguage();
   const [search, setSearch] = useState('');
   const [students, setStudents] = useState<StudentRecord[]>([
     {
@@ -52,7 +54,7 @@ export function UserRoleManager() {
       subscriptionStatus: 'inactive',
       mathLevel: 'Grade 4 Elementary',
       englishLevel: 'A1 Beginner',
-      gaps: ['Fractions', 'Linear Equations', 'Basic Vocabulary'],
+      gaps: ['Fractions', 'Linear Equations'],
     },
     {
       id: 'usr-creator',
@@ -97,10 +99,10 @@ export function UserRoleManager() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
           <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">
-            Student Role & Diagnostic Gap Management
+            {t.admin.managementTitle}
           </h3>
           <p className="text-xs text-slate-500">
-            Superuser control: manage active subscription access, inspect diagnostic gaps, and configure roles.
+            {t.admin.managementSub}
           </p>
         </div>
 
@@ -109,7 +111,7 @@ export function UserRoleManager() {
           <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by name, email..."
+            placeholder={t.admin.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -121,13 +123,13 @@ export function UserRoleManager() {
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
-              <th className="pb-3 px-2">Student</th>
-              <th className="pb-3 px-2">Target Lyceum</th>
-              <th className="pb-3 px-2">Diagnostic Levels</th>
-              <th className="pb-3 px-2">Detected Gaps</th>
-              <th className="pb-3 px-2">Pass (150K)</th>
-              <th className="pb-3 px-2">Role</th>
-              <th className="pb-3 px-2 text-right">Action</th>
+              <th className="pb-3 px-2">{t.admin.tableStudent}</th>
+              <th className="pb-3 px-2">{t.admin.tableLyceum}</th>
+              <th className="pb-3 px-2">{t.admin.tableLevels}</th>
+              <th className="pb-3 px-2">{t.admin.tableGaps}</th>
+              <th className="pb-3 px-2">{t.admin.tablePass}</th>
+              <th className="pb-3 px-2">{t.admin.tableRole}</th>
+              <th className="pb-3 px-2 text-right">{t.admin.tableAction}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
@@ -153,7 +155,9 @@ export function UserRoleManager() {
                         </span>
                       ))
                     ) : (
-                      <span className="text-emerald-600 font-semibold text-[10px]">No major gaps detected</span>
+                      <span className="text-emerald-600 font-semibold text-[10px]">
+                        {language === 'uz' ? 'Bo\'shliq aniqlanmadi' : language === 'ru' ? 'Пробелов нет' : 'No major gaps'}
+                      </span>
                     )}
                   </div>
                 </td>
@@ -165,11 +169,11 @@ export function UserRoleManager() {
                   >
                     {s.subscriptionStatus === 'active' ? (
                       <Badge variant="success" className="cursor-pointer">
-                        <CheckCircle2 className="w-3 h-3" /> Active Pass
+                        <CheckCircle2 className="w-3 h-3" /> {t.admin.activePass}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="cursor-pointer text-slate-400">
-                        <XCircle className="w-3 h-3" /> Inactive
+                        <XCircle className="w-3 h-3" /> {t.admin.inactivePass}
                       </Badge>
                     )}
                   </button>
@@ -188,9 +192,9 @@ export function UserRoleManager() {
                     size="sm"
                     variant={s.role === 'admin' ? 'outline' : 'ghost'}
                     onClick={() => toggleRole(s.id)}
-                    className="text-[11px] h-8 px-2"
+                    className="text-[11px] h-8 px-2 font-bold"
                   >
-                    {s.role === 'admin' ? 'Demote to Student' : 'Elevate to Admin'}
+                    {s.role === 'admin' ? t.admin.demoteToStudent : t.admin.elevateToAdmin}
                   </Button>
                 </td>
               </tr>

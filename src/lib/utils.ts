@@ -88,10 +88,18 @@ export function getLyceumLabel(key: string | null | undefined): string {
 
 export function getDirectionLabel(key: string | null | undefined): string {
   switch (key) {
+    case "it":
     case "it_math":
-      return "IT & Exact Sciences (Math/English/Informatics)";
+      return "IT & Computer Science (Inha / Al-Khwarizmi)";
+    case "exact-sciences":
     case "exact_sciences":
-      return "Exact Sciences (Math & Physics)";
+      return "Exact Sciences & Economics (ALWIUT / Math-Physics)";
+    case "medicine":
+      return "Medicine & Natural Sciences (Biology & Chemistry)";
+    case "law":
+      return "Law & Humanities (History & State/Law)";
+    case "languages":
+      return "Foreign Languages & Philology (CEFR B1/B2)";
     case "economics":
       return "Economics & Social Sciences";
     case "social_sciences":
@@ -100,3 +108,4 @@ export function getDirectionLabel(key: string | null | undefined): string {
       return key || "General Lyceum Track";
   }
 }
+

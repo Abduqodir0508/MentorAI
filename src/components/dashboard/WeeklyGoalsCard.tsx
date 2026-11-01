@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { getLyceumLabel, getDirectionLabel } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface WeeklyGoalsCardProps {
   targetLyceum?: string;
@@ -18,12 +19,13 @@ interface WeeklyGoalsCardProps {
 
 export function WeeklyGoalsCard({
   targetLyceum = 'inha',
-  targetDirection = 'it_math',
+  targetDirection = 'it',
   availableMonths = 5,
   weeklyHoursStudied = 9.5,
   targetWeeklyHours = 15,
   dailyHoursTarget = 2.5,
 }: WeeklyGoalsCardProps) {
+  const { t, language } = useLanguage();
   const isIntensive = availableMonths < 6;
   const progressPercent = Math.min(100, Math.round((weeklyHoursStudied / targetWeeklyHours) * 100));
 
@@ -36,27 +38,27 @@ export function WeeklyGoalsCard({
               <Target className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">Entrance Target</h4>
+              <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">{t.dashboard.entranceTargetTitle}</h4>
               <p className="text-xs text-slate-500">{getLyceumLabel(targetLyceum)}</p>
             </div>
           </div>
 
           <Badge variant={isIntensive ? "warning" : "primary"} className="gap-1">
             {isIntensive ? <Zap className="w-3 h-3 text-amber-500" /> : <Clock className="w-3 h-3" />}
-            {isIntensive ? 'Intensive Track' : 'Standard Track'}
+            {isIntensive ? t.dashboard.intensiveTrackBadge : t.dashboard.standardTrackBadge}
           </Badge>
         </div>
 
         <div className="text-xs text-slate-600 dark:text-slate-300 mb-3">
           <span className="font-semibold text-slate-900 dark:text-slate-100">{getDirectionLabel(targetDirection)}</span>
           <span className="mx-1.5">·</span>
-          <span>{availableMonths} months remaining</span>
+          <span>{availableMonths} {t.dashboard.monthsRemaining}</span>
         </div>
 
         {/* Progress */}
         <div className="space-y-1.5 my-3">
           <div className="flex justify-between text-xs font-semibold">
-            <span className="text-slate-500">Weekly Goal Progress</span>
+            <span className="text-slate-500">{t.dashboard.weeklyProgressLabel}</span>
             <span className="text-indigo-600 dark:text-indigo-400">
               {weeklyHoursStudied}h / {targetWeeklyHours}h ({progressPercent}%)
             </span>
@@ -69,16 +71,12 @@ export function WeeklyGoalsCard({
         {isIntensive ? (
           <>
             <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-            <span>
-              <strong>Smart Schedule:</strong> With {availableMonths} months to exam, your target is {dailyHoursTarget}h/day to cover 4th-grade gaps and lyceum mock tests.
-            </span>
+            <span>{t.dashboard.smartScheduleTip}</span>
           </>
         ) : (
           <>
             <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
-            <span>
-              <strong>Steady Pace:</strong> Complete 1-2 lessons per day ({dailyHoursTarget}h) to master the full syllabus with zero exam stress.
-            </span>
+            <span>{t.dashboard.steadyPaceTip}</span>
           </>
         )}
       </div>

@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   GraduationCap,
   LayoutDashboard,
-  Calculator,
-  Languages,
   Code,
+  Compass,
+  ChevronDown,
   Bot,
   CreditCard,
   ShieldCheck,
@@ -18,19 +18,26 @@ import {
   Moon,
   Menu,
   X,
+  Atom,
+  HeartPulse,
+  Scale,
+  Languages as LanguagesIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
 export function Navbar() {
   const pathname = usePathname();
+  const { t, language } = useLanguage();
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isTracksDropdownOpen, setIsTracksDropdownOpen] = useState(false);
   const [role, setRole] = useState<'student' | 'admin'>('student');
+  const tracksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check local storage for dark mode or admin role
     const savedTheme = localStorage.getItem('mentorai_theme');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setIsDark(true);
@@ -41,6 +48,16 @@ export function Navbar() {
     if (savedRole) {
       setRole(savedRole);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tracksRef.current && !tracksRef.current.contains(event.target as Node)) {
+        setIsTracksDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleDarkMode = () => {
@@ -62,18 +79,15 @@ export function Navbar() {
     window.location.reload();
   };
 
-  const navLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/learn/math', label: 'Math', icon: Calculator },
-    { href: '/learn/english', label: 'English', icon: Languages },
-    { href: '/learn/it-basics', label: 'IT Basics', icon: Code },
-    { href: '/tutor', label: 'AI Voice Tutor', icon: Bot, highlight: true },
-    { href: '/billing', label: 'Pass (150K)', icon: CreditCard },
+  const tracksList = [
+    { href: '/tracks/it', label: t.nav.itTrack, icon: Code, color: 'text-indigo-600' },
+    { href: '/tracks/exact-sciences', label: t.nav.exactTrack, icon: Atom, color: 'text-blue-600' },
+    { href: '/tracks/medicine', label: t.nav.medicineTrack, icon: HeartPulse, color: 'text-emerald-600' },
+    { href: '/tracks/law', label: t.nav.lawTrack, icon: Scale, color: 'text-purple-600' },
+    { href: '/tracks/languages', label: t.nav.languagesTrack, icon: LanguagesIcon, color: 'text-amber-600' },
   ];
 
-  if (role === 'admin') {
-    navLinks.push({ href: '/admin', label: 'Creator Admin', icon: ShieldCheck, highlight: false });
-  }
+  const isTrackActive = pathname.startsWith('/tracks') || pathname.startsWith('/learn');
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
@@ -89,58 +103,134 @@ export function Navbar() {
                 Mentor<span className="text-indigo-600 dark:text-indigo-400">AI</span>
               </span>
               <span className="text-[10px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
-                Lyceum Prep
+                {t.nav.lyceumPrepBadge}
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 leading-none">Inha & Academic Lyceums</p>
+            <p className="text-[10px] text-slate-400 leading-none">{t.nav.brandSub}</p>
           </div>
         </Link>
 
         {/* Desktop Nav Items */}
         <nav className="hidden md:flex items-center gap-1">
-          {navLinks.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          {/* Dashboard */}
+          <Link
+            href="/dashboard"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
+              pathname === '/dashboard'
+                ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>{t.nav.dashboard}</span>
+          </Link>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
-                  isActive
-                    ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800",
-                  item.highlight && !isActive && "text-indigo-600 dark:text-indigo-400 font-bold"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+          {/* 5 Tracks Dropdown */}
+          <div className="relative" ref={tracksRef}>
+            <button
+              type="button"
+              onClick={() => setIsTracksDropdownOpen(!isTracksDropdownOpen)}
+              className={cn(
+                "flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
+                isTrackActive
+                  ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+              )}
+            >
+              <Compass className="w-4 h-4" />
+              <span>{t.nav.tracks}</span>
+              <ChevronDown className={cn("w-3.5 h-3.5 ml-0.5 transition-transform duration-200", isTracksDropdownOpen && "rotate-180")} />
+            </button>
+
+            {isTracksDropdownOpen && (
+              <div className="absolute left-0 mt-1.5 w-60 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
+                  {t.nav.allTracks} (5)
+                </div>
+                {tracksList.map((tr) => {
+                  const Icon = tr.icon;
+                  const isCur = pathname === tr.href;
+                  return (
+                    <Link
+                      key={tr.href}
+                      href={tr.href}
+                      onClick={() => setIsTracksDropdownOpen(false)}
+                      className={cn(
+                        "flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors",
+                        isCur
+                          ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      )}
+                    >
+                      <Icon className={cn("w-4 h-4", tr.color)} />
+                      <span>{tr.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* AI Voice Tutor */}
+          <Link
+            href="/tutor"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all",
+              pathname === '/tutor'
+                ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400"
+                : "text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40"
+            )}
+          >
+            <Bot className="w-4 h-4" />
+            <span>{t.nav.aiVoiceTutor}</span>
+          </Link>
+
+          {/* Pass / Billing */}
+          <Link
+            href="/billing"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
+              pathname === '/billing'
+                ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>{t.nav.pass}</span>
+          </Link>
+
+          {/* Creator Admin */}
+          {role === 'admin' && (
+            <Link
+              href="/admin"
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all",
+                pathname === '/admin'
+                  ? "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                  : "text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+              )}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>{t.nav.adminDashboard}</span>
+            </Link>
+          )}
         </nav>
 
         {/* Right Action Widgets */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Quick Streak Widget */}
-          <div className="hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/50 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 text-xs font-bold">
+          <div className="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/50 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 text-xs font-bold">
             <Flame className="w-3.5 h-3.5 fill-amber-500" />
-            <span>5d Streak</span>
+            <span>5 {t.nav.streakDays}</span>
           </div>
 
-          {/* Quick XP Widget */}
-          <div className="hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/50 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-xs font-bold">
-            <Award className="w-3.5 h-3.5" />
-            <span>340 XP</span>
-          </div>
-
-          {/* Switch Role Pill (Demo / Admin superuser simulation) */}
+          {/* Switch Role Pill */}
           <button
             type="button"
             onClick={toggleRole}
             className={cn(
-              "hidden sm:flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-colors",
+              "hidden sm:flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-xl border transition-colors",
               role === 'admin'
                 ? "bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300"
                 : "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300"
@@ -149,13 +239,16 @@ export function Navbar() {
           >
             {role === 'admin' ? (
               <>
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin View (Bypass ON)</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                <span>{t.nav.adminMode}</span>
               </>
             ) : (
-              <span>Student View</span>
+              <span>{t.nav.studentMode}</span>
             )}
           </button>
+
+          {/* Global Language Switcher */}
+          <LanguageSwitcher />
 
           {/* Theme Toggle */}
           <button
@@ -181,30 +274,65 @@ export function Navbar() {
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-2 animate-in slide-in-from-top-2">
-          {navLinks.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
+          <Link
+            href="/dashboard"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>{t.nav.dashboard}</span>
+          </Link>
+
+          <div className="pt-1 pb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3">
+              {t.nav.tracks} (5)
+            </span>
+            {tracksList.map((tr) => (
               <Link
-                key={item.href}
-                href={item.href}
+                key={tr.href}
+                href={tr.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all",
-                  isActive
-                    ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"
-                    : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                )}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
+                <tr.icon className={cn("w-4 h-4", tr.color)} />
+                <span>{tr.label}</span>
               </Link>
-            );
-          })}
+            ))}
+          </div>
+
+          <Link
+            href="/tutor"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <Bot className="w-4 h-4" />
+            <span>{t.nav.aiVoiceTutor}</span>
+          </Link>
+
+          <Link
+            href="/billing"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>{t.nav.pass}</span>
+          </Link>
+
+          {role === 'admin' && (
+            <Link
+              href="/admin"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold text-purple-600 dark:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>{t.nav.adminDashboard}</span>
+            </Link>
+          )}
+
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
-            <span className="text-slate-500">Current Role Mode:</span>
+            <span className="text-slate-500">Role Mode:</span>
             <Button size="sm" variant="outline" onClick={toggleRole}>
-              Switch to {role === 'student' ? 'Admin' : 'Student'}
+              {role === 'student' ? t.nav.switchToAdmin : t.nav.switchToStudent}
             </Button>
           </div>
         </div>

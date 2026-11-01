@@ -11,29 +11,35 @@ import {
   BrainCircuit,
   CheckCircle2,
   AlertTriangle,
-  Send,
   Zap,
   Target,
-  Calculator,
-  Languages,
+  Code,
+  Atom,
+  HeartPulse,
+  Scale,
+  Languages as LanguagesIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { INITIAL_DIAGNOSTIC_QUESTIONS } from '@/lib/ai/prompts';
-import { calculateStudyPlan, formatUZS } from '@/lib/utils';
+import { ALL_TRACKS } from '@/lib/curriculum';
+import { getDiagnosticQuestionsForTrack } from '@/lib/ai/prompts';
+import { calculateStudyPlan } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
+import { TrackType } from '@/types';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { t, language } = useLanguage();
 
-  // Step 1: Goal setting survey
-  // Step 2: Conversational AI Diagnostic Test (Math & English)
+  // Step 1: Goal setting survey (Institution, 5 tracks, time remaining)
+  // Step 2: Conversational AI Diagnostic Test (Track-specific)
   // Step 3: Personalized Study Prescription & Roadmap
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Survey state
   const [targetLyceum, setTargetLyceum] = useState('inha');
-  const [targetDirection, setTargetDirection] = useState('it_math');
+  const [selectedTrack, setSelectedTrack] = useState<TrackType>('it');
   const [availableMonths, setAvailableMonths] = useState(5);
   const [weeklyHours, setWeeklyHours] = useState(14);
 
@@ -45,17 +51,18 @@ export default function OnboardingPage() {
   const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
 
   const planPreview = calculateStudyPlan(availableMonths, weeklyHours);
+  const questions = getDiagnosticQuestionsForTrack(selectedTrack);
+  const currentQ = questions[currentQuestionIndex] || questions[0];
 
   const handleNextQuestion = () => {
-    const currentQ = INITIAL_DIAGNOSTIC_QUESTIONS[currentQuestionIndex];
+    if (!currentQ) return;
     const newAnswers = { ...answers, [currentQ.id]: currentAnswerInput };
     setAnswers(newAnswers);
     setCurrentAnswerInput('');
 
-    if (currentQuestionIndex < INITIAL_DIAGNOSTIC_QUESTIONS.length - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      // Finished all diagnostic questions!
       submitFullDiagnostic(newAnswers);
     }
   };
@@ -68,10 +75,12 @@ export default function OnboardingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           answers: finalAnswers,
+          trackId: selectedTrack,
           targetLyceum,
-          targetDirection,
+          targetDirection: selectedTrack,
           availableMonths,
           targetWeeklyHours: weeklyHours,
+          language,
         }),
       });
 
@@ -92,7 +101,20 @@ export default function OnboardingPage() {
     }
   };
 
-  const currentQ = INITIAL_DIAGNOSTIC_QUESTIONS[currentQuestionIndex];
+  const trackIcons = {
+    it: Code,
+    'exact-sciences': Atom,
+    medicine: HeartPulse,
+    law: Scale,
+    languages: LanguagesIcon,
+    math: Code,
+    english: LanguagesIcon,
+    'it-basics': Code,
+  };
+
+  // Localized question text
+  const questionText =
+    language === 'uz' ? currentQ?.question_uz : language === 'ru' ? currentQ?.question_ru : currentQ?.question;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] max-w-4xl mx-auto px-4 py-8">
@@ -104,7 +126,7 @@ export default function OnboardingPage() {
           }`}>
             1
           </div>
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Goal & Timing</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.onboarding.step1}</span>
         </div>
         <div className={`flex-1 h-0.5 mx-3 ${step >= 2 ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'}`} />
         <div className="flex items-center gap-2">
@@ -113,7 +135,7 @@ export default function OnboardingPage() {
           }`}>
             2
           </div>
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">AI Diagnostic</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.onboarding.step2}</span>
         </div>
         <div className={`flex-1 h-0.5 mx-3 ${step >= 3 ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'}`} />
         <div className="flex items-center gap-2">
@@ -122,7 +144,7 @@ export default function OnboardingPage() {
           }`}>
             3
           </div>
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Study Roadmap</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.onboarding.step3}</span>
         </div>
       </div>
 
@@ -131,13 +153,13 @@ export default function OnboardingPage() {
         <Card className="p-6 md:p-8 space-y-8 animate-in fade-in">
           <div>
             <Badge variant="primary" className="mb-2">
-              <Target className="w-3.5 h-3.5 mr-1" /> Step 1: Calibration
+              <Target className="w-3.5 h-3.5 mr-1" /> {t.onboarding.step1}
             </Badge>
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-slate-100">
-              Set Your Lyceum Target & Study Schedule
+              {t.onboarding.calibrationTitle}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              MentorAI uses your timeline to dynamically configure the optimal study intensity.
+              {t.onboarding.calibrationSub}
             </p>
           </div>
 
@@ -145,14 +167,14 @@ export default function OnboardingPage() {
           <div className="space-y-3">
             <label className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <School className="w-4 h-4 text-indigo-600" />
-              Target Academic Institution
+              {t.onboarding.selectInstitution}
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
-                { id: 'inha', name: 'Inha Academic Lyceum (IUT)', desc: 'Math & English intensive' },
-                { id: 'wiut', name: 'Westminster Lyceum (ALWIUT)', desc: 'Rigorous English & Math' },
-                { id: 'al-khwarizmi', name: 'Al-Khwarizmi Specialized School', desc: 'IT & Exact Sciences' },
-                { id: 'academic_lyceum', name: 'National Academic Lyceums', desc: 'State lyceum curriculum' },
+                { id: 'inha', name: t.onboarding.inhaLyceum, desc: t.onboarding.inhaDesc },
+                { id: 'wiut', name: t.onboarding.wiutLyceum, desc: t.onboarding.wiutDesc },
+                { id: 'al-khwarizmi', name: t.onboarding.alkhwarizmiSchool, desc: t.onboarding.alkhwarizmiDesc },
+                { id: 'academic_lyceum', name: t.onboarding.academicLyceum, desc: t.onboarding.academicDesc },
               ].map((lyceum) => (
                 <div
                   key={lyceum.id}
@@ -170,30 +192,41 @@ export default function OnboardingPage() {
             </div>
           </div>
 
-          {/* Target Direction */}
+          {/* All 5 Lyceum Tracks Selection */}
           <div className="space-y-3">
             <label className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Exam Direction / Track
+              {t.onboarding.selectTrack} (5)
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { id: 'it_math', name: 'IT & Exact Sciences', tag: 'Most Popular' },
-                { id: 'exact_sciences', name: 'Pure Math & Physics', tag: 'Engineering' },
-                { id: 'economics', name: 'Economics & English', tag: 'Business/ALWIUT' },
-              ].map((dir) => (
-                <div
-                  key={dir.id}
-                  onClick={() => setTargetDirection(dir.id)}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all text-center ${
-                    targetDirection === dir.id
-                      ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 font-bold text-indigo-700 dark:text-indigo-300'
-                      : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="text-xs font-semibold">{dir.name}</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">{dir.tag}</div>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {ALL_TRACKS.map((track) => {
+                const Icon = trackIcons[track.id] || Code;
+                const isSelected = selectedTrack === track.id;
+                const title = language === 'uz' ? track.title_uz : language === 'ru' ? track.title_ru : track.title;
+                const desc = language === 'uz' ? track.description_uz : language === 'ru' ? track.description_ru : track.description;
+
+                return (
+                  <div
+                    key={track.id}
+                    onClick={() => setSelectedTrack(track.id)}
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                      isSelected
+                        ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/50 ring-2 ring-indigo-500/20 shadow-md'
+                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={`p-2 rounded-xl ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase text-slate-400">{track.level}</span>
+                      </div>
+                      <div className="font-bold text-xs text-slate-900 dark:text-slate-100">{title}</div>
+                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -202,10 +235,10 @@ export default function OnboardingPage() {
             <div className="flex items-center justify-between">
               <label className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-indigo-600" />
-                Remaining Preparation Time
+                {t.onboarding.remainingTime}
               </label>
               <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">
-                {availableMonths} Months Remaining
+                {availableMonths} {t.onboarding.months}
               </span>
             </div>
 
@@ -219,9 +252,9 @@ export default function OnboardingPage() {
             />
 
             <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-              <span>1 Month (Emergency Sprint)</span>
-              <span>6 Months (Balanced)</span>
-              <span>12 Months (Full Foundation)</span>
+              <span>{t.onboarding.sprintNotice}</span>
+              <span>{t.onboarding.balancedNotice}</span>
+              <span>{t.onboarding.fullNotice}</span>
             </div>
 
             {/* Smart Pacing Notice */}
@@ -238,16 +271,18 @@ export default function OnboardingPage() {
               <div className="space-y-1">
                 <div className="font-bold">
                   {planPreview.isIntensive
-                    ? `⚡ Intensive Schedule Recommended (${planPreview.recommendedDailyHours} hours/day)`
-                    : `🌱 Balanced Pace (${planPreview.recommendedDailyHours} hours/day)`}
+                    ? `${t.onboarding.intensiveRec} (${planPreview.recommendedDailyHours} ${t.onboarding.hoursPerDay})`
+                    : `${t.onboarding.balancedRec} (${planPreview.recommendedDailyHours} ${t.onboarding.hoursPerDay})`}
                 </div>
-                <p className="leading-relaxed">{planPreview.advice.uz}</p>
+                <p className="leading-relaxed">
+                  {language === 'uz' ? planPreview.advice.uz : language === 'ru' ? planPreview.advice.ru : planPreview.advice.en}
+                </p>
               </div>
             </div>
           </div>
 
-          <Button size="lg" className="w-full" onClick={() => setStep(2)}>
-            Start Conversational AI Diagnostic
+          <Button size="lg" className="w-full font-bold" onClick={() => setStep(2)}>
+            {t.onboarding.startDiagnosticBtn}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </Card>
@@ -259,33 +294,28 @@ export default function OnboardingPage() {
           <div className="flex items-center justify-between">
             <Badge variant="primary" className="gap-1">
               <BrainCircuit className="w-3.5 h-3.5" />
-              Question {currentQuestionIndex + 1} of {INITIAL_DIAGNOSTIC_QUESTIONS.length}
+              {t.onboarding.questionProgress} {currentQuestionIndex + 1} {t.onboarding.of} {questions.length}
             </Badge>
 
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              {currentQ.subject === 'math' ? '📐 Math Diagnostic' : '🇬🇧 English Diagnostic'}
+              {currentQ.subject.toUpperCase()} · {currentQ.difficulty.toUpperCase()}
             </span>
           </div>
 
           {/* Question Box */}
           <div className="p-6 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 space-y-3">
             <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">
-              {currentQ.difficulty} level · {currentQ.expectedConcept}
+              {currentQ.expectedConcept}
             </span>
             <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 leading-snug">
-              {currentQ.question}
+              {questionText}
             </h3>
-            {currentQ.question_uz && (
-              <p className="text-xs text-indigo-800 dark:text-indigo-300 italic">
-                🇺🇿 {currentQ.question_uz}
-              </p>
-            )}
           </div>
 
           {/* Student Answer Input */}
           <div className="space-y-3">
             <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-              Type your answer or step-by-step reasoning below:
+              {t.onboarding.typeAnswerHint}
             </label>
             <div className="flex gap-2">
               <input
@@ -293,7 +323,7 @@ export default function OnboardingPage() {
                 value={currentAnswerInput}
                 onChange={(e) => setCurrentAnswerInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && currentAnswerInput.trim() && handleNextQuestion()}
-                placeholder="e.g. 13/20, or x = 11, or walks, went..."
+                placeholder={t.onboarding.answerPlaceholder}
                 className="flex-1 h-12 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 autoFocus
               />
@@ -302,23 +332,23 @@ export default function OnboardingPage() {
                 onClick={handleNextQuestion}
                 disabled={!currentAnswerInput.trim() || isSubmittingDiagnostic}
                 isLoading={isSubmittingDiagnostic}
-                className="h-12 px-6"
+                className="h-12 px-6 font-bold"
               >
-                {currentQuestionIndex < INITIAL_DIAGNOSTIC_QUESTIONS.length - 1 ? (
+                {currentQuestionIndex < questions.length - 1 ? (
                   <>
-                    Next
+                    {t.onboarding.nextBtn}
                     <ArrowRight className="w-4 h-4 ml-1.5" />
                   </>
                 ) : (
                   <>
-                    Finish Test
+                    {t.onboarding.finishBtn}
                     <CheckCircle2 className="w-4 h-4 ml-1.5" />
                   </>
                 )}
               </Button>
             </div>
             <p className="text-[11px] text-slate-400">
-              Don’t worry if you aren’t 100% sure — MentorAI identifies exactly what grade-level concepts you need to review.
+              MentorAI identifies exact grade-level gaps to construct your personalized study path.
             </p>
           </div>
         </Card>
@@ -332,10 +362,10 @@ export default function OnboardingPage() {
               <Sparkles className="w-7 h-7" />
             </div>
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-slate-100">
-              Your Personalized Entrance Exam Prescription
+              {t.onboarding.prescriptionTitle}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Calibrated specifically for {targetLyceum === 'inha' ? 'Inha Academic Lyceum' : 'Competitive Lyceums'} with {availableMonths} months remaining.
+              {t.onboarding.prescriptionSub}
             </p>
           </div>
 
@@ -344,43 +374,39 @@ export default function OnboardingPage() {
             <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 space-y-1">
               <div className="flex items-center justify-between text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                 <span className="flex items-center gap-1.5">
-                  <Calculator className="w-4 h-4" /> Math Proficiency
+                  <Target className="w-4 h-4" /> {t.onboarding.trackProficiency}
                 </span>
-                <span>{diagnosticResult?.math_score || 70}% Score</span>
+                <span>{diagnosticResult?.track_score || 70}%</span>
               </div>
               <div className="text-lg font-black text-indigo-950 dark:text-indigo-100">
-                {diagnosticResult?.math_level === 'grade9_advanced' ? 'Grade 9 Exam Advanced' : 'Grade 6-7 Foundations'}
+                {diagnosticResult?.overall_level || 'Intermediate Lyceum Level'}
               </div>
-              <p className="text-[11px] text-indigo-800 dark:text-indigo-300">
-                Strong intuition, but needs speed drills in quadratic shortcuts and plane geometry.
-              </p>
             </div>
 
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 space-y-1">
               <div className="flex items-center justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                <span className="flex items-center gap-1.5">
-                  <Languages className="w-4 h-4" /> English Proficiency
-                </span>
-                <span>{diagnosticResult?.english_score || 50}% Score</span>
+                <span>{t.onboarding.remainingTime}:</span>
+                <span className="font-bold text-emerald-950 dark:text-emerald-200">{availableMonths} {t.onboarding.months}</span>
               </div>
               <div className="text-lg font-black text-emerald-950 dark:text-emerald-100">
-                {diagnosticResult?.english_level === 'b2_exam_ready' ? 'B2 Exam Ready' : 'A2 - B1 Intermediate'}
+                {planPreview.recommendedDailyHours} {t.onboarding.hoursPerDay}
               </div>
-              <p className="text-[11px] text-emerald-800 dark:text-emerald-300">
-                Good vocabulary base; requires timed skimming drills for entrance reading passages.
-              </p>
             </div>
           </div>
 
           {/* Identified Gaps to Bridge */}
           <div className="space-y-2">
             <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-              Identified Root Gaps to Bridge:
+              {t.onboarding.identifiedGaps}
             </h4>
             <div className="flex flex-wrap gap-2">
-              {(diagnosticResult?.identified_gaps?.length > 0
+              {(language === 'uz' && diagnosticResult?.identified_gaps_uz?.length > 0
+                ? diagnosticResult.identified_gaps_uz
+                : language === 'ru' && diagnosticResult?.identified_gaps_ru?.length > 0
+                ? diagnosticResult.identified_gaps_ru
+                : diagnosticResult?.identified_gaps?.length > 0
                 ? diagnosticResult.identified_gaps
-                : ['Fractions & LCM Common Denominator', 'Present Perfect Passive Voice', 'Quadratic Vieta Shortcuts']
+                : [t.onboarding.noGaps]
               ).map((gap: string, gIdx: number) => (
                 <span
                   key={gIdx}
@@ -395,13 +421,13 @@ export default function OnboardingPage() {
           {/* Recommended Study Rhythm */}
           <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
             <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center justify-between">
-              <span>Recommended Daily Block:</span>
+              <span>{t.onboarding.recommendedDaily}</span>
               <span className="text-indigo-600 dark:text-indigo-400 font-black">
-                {planPreview.recommendedDailyHours} hours/day ({planPreview.recommendedWeeklyHours}h/week)
+                {planPreview.recommendedDailyHours} {t.onboarding.hoursPerDay} ({planPreview.recommendedWeeklyHours} {t.onboarding.hoursPerWeek})
               </span>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-              {planPreview.advice.uz}
+              {language === 'uz' ? planPreview.advice.uz : language === 'ru' ? planPreview.advice.ru : planPreview.advice.en}
             </p>
           </div>
 
@@ -409,18 +435,18 @@ export default function OnboardingPage() {
           <div className="pt-2 flex flex-col sm:flex-row gap-3">
             <Button
               size="lg"
-              className="flex-1"
+              className="flex-1 font-bold"
               onClick={() => router.push('/dashboard')}
             >
-              Enter My Student Dashboard
+              {t.onboarding.enterDashboardBtn}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <Button
               size="lg"
               variant="outline"
-              onClick={() => router.push('/learn/math')}
+              onClick={() => router.push(`/tracks/${selectedTrack}`)}
             >
-              Start First Math Lesson (Free)
+              {t.onboarding.startFirstLessonBtn}
             </Button>
           </div>
         </Card>

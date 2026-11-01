@@ -1,46 +1,56 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   ShieldCheck,
-  Users,
-  CreditCard,
-  Calculator,
-  Languages,
-  Code,
-  Sparkles,
   ArrowRight,
-  PlusCircle,
-  TrendingUp,
+  Code,
+  Atom,
+  HeartPulse,
+  Scale,
+  Languages as LanguagesIcon,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
 import { UserRoleManager } from '@/components/admin/UserRoleManager';
-import { TRACKS_DATA, LESSONS_DATA } from '@/lib/curriculum';
+import { ALL_TRACKS, TRACK_LESSONS } from '@/lib/curriculum';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function AdminPage() {
+  const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'curriculum'>('overview');
 
+  const trackIcons = {
+    it: Code,
+    'exact-sciences': Atom,
+    medicine: HeartPulse,
+    law: Scale,
+    languages: LanguagesIcon,
+    math: Code,
+    english: LanguagesIcon,
+    'it-basics': Code,
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="primary" className="bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
               <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-              Creator Superuser Dashboard
+              {t.admin.badge}
             </Badge>
-            <span className="text-xs text-slate-400">Zero subscription checks · Full platform bypass</span>
+            <span className="text-xs text-slate-400">{t.admin.badgeSub}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100">
-            MentorAI Platform Control Center
+            {t.admin.title}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
-            Real-time telemetry, student diagnostic gap monitoring, and subscription pass administration.
+            {t.admin.subtitle}
           </p>
         </div>
 
@@ -55,7 +65,7 @@ export default function AdminPage() {
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Analytics & MRR
+            {t.admin.tabAnalytics}
           </button>
           <button
             type="button"
@@ -66,7 +76,7 @@ export default function AdminPage() {
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Students & Roles
+            {t.admin.tabStudents}
           </button>
           <button
             type="button"
@@ -77,7 +87,7 @@ export default function AdminPage() {
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Curriculum Oversight
+            {t.admin.tabCurriculum}
           </button>
         </div>
       </div>
@@ -100,38 +110,46 @@ export default function AdminPage() {
       {/* Tab 3: Curriculum Oversight */}
       {activeTab === 'curriculum' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TRACKS_DATA.map((track) => {
-              const lessons = LESSONS_DATA.filter((l) => l.track_id === track.id);
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ALL_TRACKS.map((track) => {
+              const Icon = trackIcons[track.id] || Code;
+              const lessons = TRACK_LESSONS[track.id] || [];
               const freeCount = lessons.filter((l) => l.is_free_preview).length;
+              const title = language === 'uz' ? track.title_uz : language === 'ru' ? track.title_ru : track.title;
+              const desc = language === 'uz' ? track.description_uz : language === 'ru' ? track.description_ru : track.description;
 
               return (
-                <Card key={track.id} className="p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-base text-slate-900 dark:text-slate-100">
-                      {track.title}
-                    </span>
-                    <Badge variant="outline">{lessons.length} Lessons</Badge>
+                <Card key={track.id} className="p-6 space-y-4 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400">
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <span className="font-bold text-sm text-slate-900 dark:text-slate-100">{title}</span>
+                      </div>
+                      <Badge variant="outline">{lessons.length} {language === 'uz' ? 'Dars' : language === 'ru' ? 'Уроков' : 'Lessons'}</Badge>
+                    </div>
+
+                    <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                      {desc}
+                    </p>
+
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
+                      <div className="flex justify-between">
+                        <span>{t.tracks.freePreview}:</span>
+                        <strong className="text-emerald-600 font-semibold">{freeCount}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>{t.tracks.lockedLesson}:</span>
+                        <strong className="text-indigo-600 font-semibold">{lessons.length - freeCount}</strong>
+                      </div>
+                    </div>
                   </div>
 
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    {track.description}
-                  </p>
-
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
-                    <div className="flex justify-between">
-                      <span>Free Diagnostic Previews:</span>
-                      <strong className="text-emerald-600 font-semibold">{freeCount}</strong>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Locked (150K Pass):</span>
-                      <strong className="text-indigo-600 font-semibold">{lessons.length - freeCount}</strong>
-                    </div>
-                  </div>
-
-                  <Link href={`/learn/${track.id}`} className="block pt-2">
-                    <Button variant="outline" size="sm" className="w-full text-xs">
-                      Inspect Track Curriculum
+                  <Link href={`/tracks/${track.slug}`} className="block pt-2">
+                    <Button variant="outline" size="sm" className="w-full text-xs font-bold">
+                      {t.admin.inspectTrack}
                       <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                     </Button>
                   </Link>

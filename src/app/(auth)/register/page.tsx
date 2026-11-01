@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase/client';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t, language } = useLanguage();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +43,6 @@ export default function RegisterPage() {
       localStorage.setItem('mentorai_role', 'student');
       localStorage.setItem('mentorai_user_email', email);
       localStorage.setItem('mentorai_user_name', fullName);
-      // Route new students directly to onboarding diagnostic!
       router.push('/onboarding');
     } catch (err: any) {
       console.warn('Signup notice:', err.message);
@@ -54,18 +55,45 @@ export default function RegisterPage() {
     }
   };
 
+  const title =
+    language === 'uz'
+      ? "O'quvchi Hisobini Yaratish"
+      : language === 'ru'
+      ? "Регистрация Ученика"
+      : "Create Student Account";
+
+  const sub =
+    language === 'uz'
+      ? "Inha va akademik litseylarga tayyorlanayotgan 1,200+ o'quvchiga qo'shiling."
+      : language === 'ru'
+      ? "Присоединяйтесь к 1,200+ ученикам, готовящимся к поступлению в лицеи."
+      : "Join 1,200+ students preparing for Inha & Academic Lyceums.";
+
+  const nameLabel =
+    language === 'uz' ? "Ism va Familiya" : language === 'ru' ? "ФИО" : "Full Name";
+  const emailLabel =
+    language === 'uz' ? "Elektron pochta" : language === 'ru' ? "Электронная почта" : "Email Address";
+  const passLabel =
+    language === 'uz' ? "Parol o'ylab toping" : language === 'ru' ? "Придумайте пароль" : "Create Password";
+  const continueBtn =
+    language === 'uz'
+      ? "AI Diagnostikaga O'tish"
+      : language === 'ru'
+      ? "Перейти к ИИ-Диагностике"
+      : "Continue to AI Diagnostic Test";
+
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 animate-in fade-in">
       <Card className="w-full max-w-md shadow-2xl border-slate-200/80 dark:border-slate-800">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 mb-2">
             <GraduationCap className="w-6 h-6" />
           </div>
           <CardTitle className="text-2xl font-black text-slate-900 dark:text-slate-100">
-            Create Student Account
+            {title}
           </CardTitle>
           <CardDescription>
-            Join 1,200+ students preparing for Inha & Academic Lyceums.
+            {sub}
           </CardDescription>
         </CardHeader>
 
@@ -78,7 +106,7 @@ export default function RegisterPage() {
             )}
 
             <Input
-              label="Full Name"
+              label={nameLabel}
               placeholder="e.g. Azizbek Rahimov"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -86,7 +114,7 @@ export default function RegisterPage() {
             />
 
             <Input
-              label="Email Address"
+              label={emailLabel}
               type="email"
               placeholder="student@mentorai.uz"
               value={email}
@@ -95,25 +123,25 @@ export default function RegisterPage() {
             />
 
             <Input
-              label="Create Password"
+              label={passLabel}
               type="password"
-              placeholder="Minimum 6 characters"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
 
-            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-              Continue to AI Diagnostic Test
+            <Button type="submit" className="w-full font-bold" size="lg" isLoading={isLoading}>
+              {continueBtn}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </form>
         </CardContent>
 
         <CardFooter className="flex justify-center border-t border-slate-100 dark:border-slate-800 py-4 text-xs text-slate-500">
-          <span>Already registered? </span>
+          <span>{language === 'uz' ? "Allaqachon ro'yxatdan o'tganmisiz?" : language === 'ru' ? "Уже зарегистрированы?" : "Already registered?"} </span>
           <Link href="/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline ml-1">
-            Sign In here
+            {t.nav.login}
           </Link>
         </CardFooter>
       </Card>

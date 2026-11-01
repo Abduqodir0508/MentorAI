@@ -114,3 +114,4 @@ export function ChatBubble({ message, onSuggestionClick }: ChatBubbleProps) {
     </div>
   );
 }
+

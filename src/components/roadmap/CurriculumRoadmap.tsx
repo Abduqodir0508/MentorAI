@@ -2,14 +2,15 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Lock, Play, Sparkles, Clock, Award } from 'lucide-react';
-import { Lesson } from '@/types';
+import { CheckCircle2, Lock, Play, Clock, Award } from 'lucide-react';
+import { Lesson, TrackType } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
 interface CurriculumRoadmapProps {
-  trackId: 'math' | 'english' | 'it-basics';
+  trackId: TrackType;
   lessons: Lesson[];
   completedLessonIds?: string[];
   hasSubscription?: boolean;
@@ -25,6 +26,8 @@ export function CurriculumRoadmap({
   isAdmin = false,
   onSelectLesson,
 }: CurriculumRoadmapProps) {
+  const { t, language } = useLanguage();
+
   const isUnlocked = (lesson: Lesson) => {
     return isAdmin || hasSubscription || lesson.is_free_preview;
   };
@@ -38,6 +41,25 @@ export function CurriculumRoadmap({
         {lessons.map((lesson, index) => {
           const isCompleted = completedLessonIds.includes(lesson.id);
           const unlocked = isUnlocked(lesson);
+
+          const title =
+            language === 'uz'
+              ? lesson.title_uz || lesson.title
+              : language === 'ru'
+              ? lesson.title_ru || lesson.title
+              : lesson.title;
+          const description =
+            language === 'uz'
+              ? lesson.description_uz || lesson.description
+              : language === 'ru'
+              ? lesson.description_ru || lesson.description
+              : lesson.description;
+          const topic =
+            language === 'uz'
+              ? lesson.topic_uz || lesson.topic
+              : language === 'ru'
+              ? lesson.topic_ru || lesson.topic
+              : lesson.topic;
 
           return (
             <div key={lesson.id} className="relative flex items-start gap-4 md:gap-6 group">
@@ -75,11 +97,11 @@ export function CurriculumRoadmap({
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant={unlocked ? "primary" : "outline"}>{lesson.grade_level}</Badge>
                     <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      {lesson.topic}
+                      {topic}
                     </span>
                     {lesson.is_free_preview && (
                       <Badge variant="success" className="animate-pulse">
-                        Free Diagnostic Preview
+                        {t.tracks.freePreview}
                       </Badge>
                     )}
                   </div>
@@ -97,17 +119,17 @@ export function CurriculumRoadmap({
                 </div>
 
                 <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  {lesson.title}
+                  {title}
                 </h4>
 
                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                  {lesson.description}
+                  {description}
                 </p>
 
                 {/* Bottom Action */}
                 <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
                   <div className="text-xs text-slate-500 dark:text-slate-400">
-                    {lesson.practice_problems.length} interactive practice questions
+                    {lesson.practice_problems.length} {language === 'uz' ? 'ta amaliy savol' : language === 'ru' ? 'практических заданий' : 'practice questions'}
                   </div>
 
                   {unlocked ? (
@@ -118,15 +140,16 @@ export function CurriculumRoadmap({
                         e.stopPropagation();
                         onSelectLesson?.(lesson);
                       }}
+                      className="font-bold text-xs"
                     >
                       <Play className="w-3.5 h-3.5 mr-1" />
-                      {isCompleted ? "Review Lesson" : "Start Lesson"}
+                      {isCompleted ? t.tracks.reviewLesson : t.tracks.startLesson}
                     </Button>
                   ) : (
                     <Link href="/billing">
-                      <Button size="sm" variant="secondary" className="gap-1.5 text-xs">
+                      <Button size="sm" variant="secondary" className="gap-1.5 text-xs font-bold">
                         <Lock className="w-3.5 h-3.5" />
-                        Unlock (150,000 UZS/mo)
+                        {t.tracks.unlockBtn}
                       </Button>
                     </Link>
                   )}

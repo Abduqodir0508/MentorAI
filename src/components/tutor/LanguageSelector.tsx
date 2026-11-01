@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { Globe } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { Language } from '@/types';
 import { cn } from '@/lib/utils';
 
 interface LanguageSelectorProps {
-  currentLanguage: 'uz' | 'ru' | 'en';
-  onLanguageChange: (lang: 'uz' | 'ru' | 'en') => void;
+  currentLanguage?: Language;
+  onLanguageChange?: (lang: Language) => void;
   className?: string;
 }
 
@@ -15,11 +17,19 @@ export function LanguageSelector({
   onLanguageChange,
   className,
 }: LanguageSelectorProps) {
-  const languages = [
-    { code: 'uz' as const, label: "O'zbek", flag: '🇺🇿' },
-    { code: 'ru' as const, label: 'Русский', flag: '🇷🇺' },
-    { code: 'en' as const, label: 'English', flag: '🇬🇧' },
+  const { language, setLanguage } = useLanguage();
+  const activeLang = currentLanguage || language;
+
+  const languages: { code: Language; label: string; flag: string }[] = [
+    { code: 'uz', label: "O'zbek", flag: '🇺🇿' },
+    { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+    { code: 'en', label: 'English', flag: '🇬🇧' },
   ];
+
+  const handleSelect = (code: Language) => {
+    setLanguage(code);
+    onLanguageChange?.(code);
+  };
 
   return (
     <div className={cn("inline-flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700", className)}>
@@ -28,12 +38,12 @@ export function LanguageSelector({
         <span className="hidden sm:inline font-medium">Tutor:</span>
       </div>
       {languages.map((lang) => {
-        const isActive = currentLanguage === lang.code;
+        const isActive = activeLang === lang.code;
         return (
           <button
             key={lang.code}
             type="button"
-            onClick={() => onLanguageChange(lang.code)}
+            onClick={() => handleSelect(lang.code)}
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg transition-all",
               isActive

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Flame, Award, BookCheck, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface StatsOverviewProps {
   streakDays?: number;
@@ -19,35 +20,37 @@ export function StatsOverview({
   weeklyHoursStudied = 9.5,
   targetWeeklyHours = 14,
 }: StatsOverviewProps) {
+  const { t, language } = useLanguage();
+
   const stats = [
     {
-      label: 'Day Streak',
-      value: `${streakDays} Days`,
-      subtext: 'Consecutive study',
+      label: t.dashboard.dayStreak,
+      value: `${streakDays} ${language === 'uz' ? 'Kun' : language === 'ru' ? 'Дней' : 'Days'}`,
+      subtext: t.dashboard.consecutiveDays,
       icon: Flame,
       color: 'text-amber-500',
       bgColor: 'bg-amber-500/10 dark:bg-amber-500/20',
     },
     {
-      label: 'Total XP Earned',
+      label: t.dashboard.totalXp,
       value: `${totalXp} XP`,
-      subtext: 'Level: Exam Contender',
+      subtext: t.dashboard.levelExamContender,
       icon: Award,
       color: 'text-indigo-600 dark:text-indigo-400',
       bgColor: 'bg-indigo-600/10 dark:bg-indigo-600/20',
     },
     {
-      label: 'Lessons Mastered',
+      label: t.dashboard.lessonsMastered,
       value: `${completedLessonsCount}`,
-      subtext: 'Foundations & Algebra',
+      subtext: t.dashboard.foundationsCompleted,
       icon: BookCheck,
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10 dark:bg-emerald-500/20',
     },
     {
-      label: 'Weekly Study Time',
+      label: t.dashboard.weeklyTime,
       value: `${weeklyHoursStudied}h / ${targetWeeklyHours}h`,
-      subtext: `${Math.round((weeklyHoursStudied / (targetWeeklyHours || 1)) * 100)}% of weekly goal`,
+      subtext: `${Math.round((weeklyHoursStudied / (targetWeeklyHours || 1)) * 100)}% ${t.dashboard.ofWeeklyGoal}`,
       icon: Clock,
       color: 'text-violet-500',
       bgColor: 'bg-violet-500/10 dark:bg-violet-500/20',

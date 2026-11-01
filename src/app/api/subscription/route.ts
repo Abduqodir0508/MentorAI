@@ -87,3 +87,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Payment processing failed", details: error.message }, { status: 500 });
   }
 }
+

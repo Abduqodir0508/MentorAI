@@ -6,6 +6,7 @@ import { X, CheckCircle2, AlertCircle, HelpCircle, ArrowRight, Award, BookOpen }
 import { Lesson } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
 interface LessonModalProps {
@@ -16,6 +17,7 @@ interface LessonModalProps {
 }
 
 export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModalProps) {
+  const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'theory' | 'practice'>('theory');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [revealedHints, setRevealedHints] = useState<Record<string, boolean>>({});
@@ -61,6 +63,27 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
     setIsSubmitted(false);
   };
 
+  const lessonTitle =
+    language === 'uz' ? lesson.title_uz || lesson.title : language === 'ru' ? lesson.title_ru || lesson.title : lesson.title;
+  const introText =
+    language === 'uz'
+      ? lesson.content.introduction_uz || lesson.content.introduction
+      : language === 'ru'
+      ? lesson.content.introduction_ru || lesson.content.introduction
+      : lesson.content.introduction;
+  const concepts =
+    language === 'uz' && lesson.content.conceptSummary_uz?.length
+      ? lesson.content.conceptSummary_uz
+      : language === 'ru' && lesson.content.conceptSummary_ru?.length
+      ? lesson.content.conceptSummary_ru
+      : lesson.content.conceptSummary;
+  const takeaway =
+    language === 'uz'
+      ? lesson.content.keyTakeaway_uz || lesson.content.keyTakeaway
+      : language === 'ru'
+      ? lesson.content.keyTakeaway_ru || lesson.content.keyTakeaway
+      : lesson.content.keyTakeaway;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -75,7 +98,7 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
               <Badge variant="primary">{lesson.grade_level}</Badge>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{lesson.topic}</span>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{lesson.title}</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{lessonTitle}</h2>
           </div>
           <button
             onClick={onClose}
@@ -98,7 +121,7 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
             )}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Theory & Concepts</span>
+            <span>{t.common.theory}</span>
           </button>
           <button
             type="button"
@@ -111,7 +134,7 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
             )}
           >
             <Award className="w-4 h-4" />
-            <span>Practice Drills ({lesson.practice_problems.length})</span>
+            <span>{t.common.practice} ({lesson.practice_problems.length})</span>
           </button>
         </div>
 
@@ -122,25 +145,20 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
               {/* Introduction */}
               <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50">
                 <h4 className="font-semibold text-indigo-900 dark:text-indigo-200 text-sm mb-1">
-                  Why this matters for your Entrance Exam:
+                  {t.common.whyMatters}
                 </h4>
                 <p className="text-sm text-indigo-800 dark:text-indigo-300 leading-relaxed">
-                  {lesson.content.introduction}
+                  {introText}
                 </p>
-                {lesson.content.introduction_uz && (
-                  <p className="text-xs text-indigo-700/80 dark:text-indigo-400/80 mt-2 italic">
-                    🇺🇿 {lesson.content.introduction_uz}
-                  </p>
-                )}
               </div>
 
               {/* Core Concept Breakdown */}
               <div>
                 <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 mb-3">
-                  Core Foundations
+                  {t.common.coreFoundations}
                 </h3>
                 <ul className="space-y-2">
-                  {lesson.content.conceptSummary.map((item, idx) => (
+                  {concepts.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300">
                       <span className="w-2 h-2 rounded-full bg-indigo-600 mt-2 shrink-0" />
                       <span>{item}</span>
@@ -153,20 +171,24 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
               {lesson.content.formulaOrRules && lesson.content.formulaOrRules.length > 0 && (
                 <div>
                   <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 mb-3">
-                    Exam Rules & Formulas
+                    {t.common.rulesAndFormulas}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {lesson.content.formulaOrRules.map((rule, idx) => (
-                      <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                        <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                          {rule.label}
-                        </span>
-                        <div className="font-mono text-base font-semibold text-slate-900 dark:text-slate-100 my-1">
-                          {rule.formula}
+                    {lesson.content.formulaOrRules.map((rule, idx) => {
+                      const rLabel = language === 'uz' ? rule.label_uz || rule.label : language === 'ru' ? rule.label_ru || rule.label : rule.label;
+                      const rExp = language === 'uz' ? rule.explanation_uz || rule.explanation : language === 'ru' ? rule.explanation_ru || rule.explanation : rule.explanation;
+                      return (
+                        <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                            {rLabel}
+                          </span>
+                          <div className="font-mono text-base font-semibold text-slate-900 dark:text-slate-100 my-1">
+                            {rule.formula}
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{rExp}</p>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{rule.explanation}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -175,29 +197,35 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
               {lesson.content.stepByStepExamples && (
                 <div>
                   <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 mb-3">
-                    Step-by-Step Walkthrough
+                    {t.common.stepByStep}
                   </h3>
-                  {lesson.content.stepByStepExamples.map((example, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                      <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-2">
-                        {example.title}
-                      </h4>
-                      <div className="space-y-1.5 font-sans text-xs text-slate-600 dark:text-slate-300">
-                        {example.steps.map((st, sIdx) => (
-                          <div key={sIdx}>{st}</div>
-                        ))}
+                  {lesson.content.stepByStepExamples.map((example, idx) => {
+                    const exTitle = language === 'uz' ? example.title_uz || example.title : language === 'ru' ? example.title_ru || example.title : example.title;
+                    const exSteps = language === 'uz' && example.steps_uz?.length ? example.steps_uz : language === 'ru' && example.steps_ru?.length ? example.steps_ru : example.steps;
+                    const exSol = language === 'uz' ? example.solution_uz || example.solution : language === 'ru' ? example.solution_ru || example.solution : example.solution;
+
+                    return (
+                      <div key={idx} className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-2">
+                          {exTitle}
+                        </h4>
+                        <div className="space-y-1.5 font-sans text-xs text-slate-600 dark:text-slate-300">
+                          {exSteps.map((st, sIdx) => (
+                            <div key={sIdx}>{st}</div>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                          {t.common.answer} {exSol}
+                        </div>
                       </div>
-                      <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                        Answer: {example.solution}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
               {/* Key Takeaway */}
               <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 text-xs font-medium">
-                ⚡ <strong>Key Takeaway:</strong> {lesson.content.keyTakeaway}
+                ⚡ <strong>{t.common.keyTakeaway}</strong> {takeaway}
               </div>
             </div>
           ) : (
@@ -208,6 +236,11 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
                 const isCorrect = isAnswered && selectedOption === problem.correctAnswerIndex;
                 const hintVisible = revealedHints[problem.id];
 
+                const qText = language === 'uz' ? problem.question_uz || problem.question : language === 'ru' ? problem.question_ru || problem.question : problem.question;
+                const options = language === 'uz' && problem.options_uz?.length ? problem.options_uz : language === 'ru' && problem.options_ru?.length ? problem.options_ru : problem.options;
+                const hint = language === 'uz' ? problem.hint_uz || problem.hint : language === 'ru' ? problem.hint_ru || problem.hint : problem.hint;
+                const exp = language === 'uz' ? problem.explanation_uz || problem.explanation : language === 'ru' ? problem.explanation_ru || problem.explanation : problem.explanation;
+
                 return (
                   <div
                     key={problem.id}
@@ -215,23 +248,18 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                        Question {pIdx + 1}
+                        {t.common.question} {pIdx + 1}
                       </span>
                       <span className="text-xs font-semibold text-amber-600">+{problem.xp} XP</span>
                     </div>
 
                     <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
-                      {problem.question}
+                      {qText}
                     </h4>
-                    {problem.question_uz && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 italic">
-                        🇺🇿 {problem.question_uz}
-                      </p>
-                    )}
 
                     {/* Options list */}
                     <div className="space-y-2">
-                      {problem.options.map((option, oIdx) => {
+                      {options.map((option, oIdx) => {
                         const isThisSelected = selectedOption === oIdx;
                         const isThisCorrect = oIdx === problem.correctAnswerIndex;
 
@@ -266,7 +294,7 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
                     </div>
 
                     {/* Hint Button */}
-                    {problem.hint && !isSubmitted && (
+                    {hint && !isSubmitted && (
                       <div className="mt-3">
                         <button
                           type="button"
@@ -274,11 +302,11 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
                           className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-indigo-600 transition-colors"
                         >
                           <HelpCircle className="w-3.5 h-3.5" />
-                          <span>{hintVisible ? "Hide Hint" : "Need a Hint?"}</span>
+                          <span>{hintVisible ? t.common.hideHint : t.common.needHint}</span>
                         </button>
                         {hintVisible && (
                           <p className="mt-1.5 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300">
-                            💡 {problem.hint}
+                            💡 {hint}
                           </p>
                         )}
                       </div>
@@ -287,7 +315,7 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
                     {/* Explanation after submission */}
                     {isSubmitted && (
                       <div className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
-                        <strong>Explanation:</strong> {problem.explanation}
+                        <strong>{t.common.explanation}</strong> {exp}
                       </div>
                     )}
                   </div>
@@ -301,9 +329,9 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
           {activeTab === 'theory' ? (
             <div className="flex items-center justify-between w-full">
-              <span className="text-xs text-slate-500">Ready to test your knowledge?</span>
-              <Button onClick={() => setActiveTab('practice')}>
-                Practice Questions
+              <span className="text-xs text-slate-500">{t.common.readyToTest}</span>
+              <Button onClick={() => setActiveTab('practice')} className="font-bold text-xs">
+                {t.common.practiceQuestionsBtn}
                 <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </div>
@@ -312,14 +340,14 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
               {isSubmitted ? (
                 <>
                   <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Score: {calculateScore()}% ({calculateScore() >= 50 ? "Passed 🎉" : "Needs Review"})
+                    {t.common.score} {calculateScore()}% ({calculateScore() >= 50 ? t.common.passedCelebration : t.common.needsReviewNotice})
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={resetPractice}>
-                      Retry Drills
+                    <Button variant="outline" size="sm" onClick={resetPractice} className="font-bold text-xs">
+                      {t.common.retryBtn}
                     </Button>
-                    <Button size="sm" onClick={onClose}>
-                      Done
+                    <Button size="sm" onClick={onClose} className="font-bold text-xs">
+                      {t.common.doneBtn}
                     </Button>
                   </div>
                 </>
@@ -331,8 +359,9 @@ export function LessonModal({ lesson, isOpen, onClose, onComplete }: LessonModal
                   <Button
                     onClick={handleSubmitPractice}
                     disabled={Object.keys(selectedAnswers).length === 0}
+                    className="font-bold text-xs"
                   >
-                    Submit Answers
+                    {t.common.submitAnswersBtn}
                   </Button>
                 </>
               )}

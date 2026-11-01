@@ -2,18 +2,32 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Sparkles, BookOpen, Calculator, Languages, Code } from 'lucide-react';
+import { ArrowRight, Sparkles, Code, Atom, HeartPulse, Scale, Languages as LanguagesIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TRACKS_DATA, LESSONS_DATA } from '@/lib/curriculum';
+import { ALL_TRACKS, TRACK_LESSONS } from '@/lib/curriculum';
+import { useLanguage } from '@/context/LanguageContext';
 
-interface RecommendedLessonsProps {
-  onOpenLesson?: (lessonId: string) => void;
-}
+export function RecommendedLessons() {
+  const { t, language } = useLanguage();
+  const nextLesson = TRACK_LESSONS.it[0]; // First lesson
 
-export function RecommendedLessons({ onOpenLesson }: RecommendedLessonsProps) {
-  const nextLesson = LESSONS_DATA[0]; // First lesson: Mastering Fractions
+  const lessonTitle =
+    language === 'uz' ? nextLesson.title_uz : language === 'ru' ? nextLesson.title_ru : nextLesson.title;
+  const lessonDesc =
+    language === 'uz' ? nextLesson.description_uz : language === 'ru' ? nextLesson.description_ru : nextLesson.description;
+
+  const trackIcons = {
+    it: Code,
+    'exact-sciences': Atom,
+    medicine: HeartPulse,
+    law: Scale,
+    languages: LanguagesIcon,
+    math: Code,
+    english: LanguagesIcon,
+    'it-basics': Code,
+  };
 
   return (
     <div className="space-y-4">
@@ -26,7 +40,7 @@ export function RecommendedLessons({ onOpenLesson }: RecommendedLessonsProps) {
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/20">
                 <Sparkles className="w-3 h-3" />
-                Adaptive Recommendation
+                {t.dashboard.adaptiveRecBadge}
               </span>
               <span className="text-xs text-indigo-200/70 font-medium">
                 {nextLesson.grade_level}
@@ -34,24 +48,24 @@ export function RecommendedLessons({ onOpenLesson }: RecommendedLessonsProps) {
             </div>
 
             <h3 className="text-xl md:text-2xl font-bold tracking-tight text-white">
-              {nextLesson.title}
+              {lessonTitle}
             </h3>
 
             <p className="text-xs md:text-sm text-indigo-200/80 leading-relaxed">
-              {nextLesson.description}
+              {lessonDesc}
             </p>
 
             <div className="flex items-center gap-4 text-xs text-indigo-300 pt-1">
-              <span>⏱️ {nextLesson.duration_minutes} mins</span>
+              <span>⏱️ {nextLesson.duration_minutes} min</span>
               <span>🏆 +{nextLesson.xp_reward} XP</span>
-              <span className="text-emerald-400 font-medium">Free Preview</span>
+              <span className="text-emerald-400 font-medium">{t.tracks.freePreview}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <Link href="/learn/math">
+            <Link href="/tracks/it">
               <Button size="lg" className="bg-white text-indigo-950 hover:bg-indigo-50 shadow-lg font-bold">
-                Start Next Lesson
+                {t.dashboard.startNextLessonBtn}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
@@ -59,39 +73,32 @@ export function RecommendedLessons({ onOpenLesson }: RecommendedLessonsProps) {
         </div>
       </Card>
 
-      {/* 3 Tracks Quick Navigation */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {TRACKS_DATA.map((track) => {
-          const iconMap = {
-            math: Calculator,
-            english: Languages,
-            'it-basics': Code,
-          };
-          const Icon = iconMap[track.id as keyof typeof iconMap] || BookOpen;
+      {/* 5 Tracks Quick Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {ALL_TRACKS.map((track) => {
+          const Icon = trackIcons[track.id] || Code;
+          const title = language === 'uz' ? track.title_uz : language === 'ru' ? track.title_ru : track.title;
 
           return (
-            <Link key={track.id} href={`/learn/${track.id}`}>
-              <Card className="p-5 hover:border-indigo-500/50 hover:shadow-md transition-all group h-full flex flex-col justify-between">
+            <Link key={track.id} href={`/tracks/${track.slug}`}>
+              <Card className="p-4 hover:border-indigo-500/50 hover:shadow-md transition-all group h-full flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:group-hover:bg-indigo-950/60 dark:group-hover:text-indigo-400 transition-colors">
-                      <Icon className="w-5 h-5" />
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:group-hover:bg-indigo-950/60 dark:group-hover:text-indigo-400 transition-colors">
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <Badge variant="outline" className="text-[10px]">
-                      {track.level}
-                    </Badge>
                   </div>
-                  <h4 className="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    {track.title}
+                  <h4 className="font-bold text-xs text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
+                    {title}
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                    {track.description}
+                  <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2">
+                    {track.targetSchools[0]}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                  <span>Enter Track</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
+                  <span>{t.dashboard.exploreTrackBtn}</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Card>
             </Link>

@@ -135,3 +135,4 @@ To test all user flows without configuring external services:
 - **Student Persona**: Click **"Student Mode"** on `/login` or enter any email. Complete the onboarding diagnostic on `/onboarding` to receive a personalized study prescription.
 - **Creator Admin Bypass**: Click **"Creator Admin"** on `/login` (or toggle the role switch in the top navigation bar). This unlocks unrestricted access to `/admin`, bypasses all paywalls, and opens platform telemetry and student gap inspector.
 - **Voice AI Demo**: Visit `/tutor`, click the microphone icon, or toggle **"Voice: ON"** to test Web Speech audio synthesis.
+
