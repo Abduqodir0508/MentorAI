@@ -5,10 +5,11 @@
  */
 
 export interface SpeechOptions {
-  lang?: 'uz-UZ' | 'ru-RU' | 'en-US';
+  lang?: 'uz-UZ' | 'ru-RU' | 'en-US' | string;
   rate?: number;
   pitch?: number;
   volume?: number;
+  onStart?: () => void;
   onEnd?: () => void;
   onError?: (error: any) => void;
 }
@@ -39,13 +40,19 @@ export class VoiceAssistant {
     // Cancel any previous speaking
     synth.cancel();
 
-    // Clean text of markdown characters before speaking
+    // Clean text of markdown, code blocks, URLs, and latex formatting before speaking
     const cleanText = text
-      .replace(/[*#_`~>\[\]()]/g, ' ')
+      .replace(/```[\s\S]*?```/g, ' ') // remove code blocks
+      .replace(/`([^`]+)`/g, '$1')     // remove inline code ticks
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // markdown links
+      .replace(/[*#_~>\[\]()]/g, ' ')  // symbols and formatting
       .replace(/\s+/g, ' ')
       .trim();
 
-    if (!cleanText) return;
+    if (!cleanText) {
+      options.onEnd?.();
+      return;
+    }
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = options.lang || 'en-US';
@@ -64,6 +71,10 @@ export class VoiceAssistant {
     if (matchedVoice) {
       utterance.voice = matchedVoice;
     }
+
+    utterance.onstart = () => {
+      options.onStart?.();
+    };
 
     utterance.onend = () => {
       options.onEnd?.();

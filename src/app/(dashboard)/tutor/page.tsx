@@ -4,14 +4,18 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Bot, ArrowLeft, Sparkles, Mic, BookOpen, ShieldCheck } from 'lucide-react';
 import { TutorInterface } from '@/components/tutor/TutorInterface';
+import { AIAvatarWidget, AvatarState } from '@/components/tutor/AIAvatarWidget';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { VoiceAssistant } from '@/lib/ai/voice';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function TutorPage() {
   const { t, language } = useLanguage();
   const [role, setRole] = useState<'student' | 'admin'>('student');
   const [userName, setUserName] = useState('Student');
+  const [avatarState, setAvatarState] = useState<AvatarState>('idle');
+  const [autoSpeak, setAutoSpeak] = useState(false);
 
   useEffect(() => {
     const savedRole = localStorage.getItem('mentorai_role') as 'student' | 'admin';
@@ -20,6 +24,20 @@ export default function TutorPage() {
     const savedName = localStorage.getItem('mentorai_user_name');
     if (savedName) setUserName(savedName);
   }, []);
+
+  const handleStopSpeaking = () => {
+    VoiceAssistant.stopSpeaking();
+    setAvatarState('idle');
+  };
+
+  const handleToggleAutoSpeak = () => {
+    const nextVal = !autoSpeak;
+    setAutoSpeak(nextVal);
+    if (!nextVal) {
+      VoiceAssistant.stopSpeaking();
+      setAvatarState('idle');
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-in fade-in">
@@ -36,7 +54,7 @@ export default function TutorPage() {
             </Link>
             <Badge variant="primary" className="gap-1">
               <Sparkles className="w-3 h-3" />
-              Socratic AI Tutor
+              Gemini AI Copilot
             </Badge>
             {role === 'admin' && (
               <Badge variant="primary" className="bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
@@ -62,11 +80,24 @@ export default function TutorPage() {
             studentName={userName}
             hasActiveSubscription={true}
             isAdmin={role === 'admin'}
+            avatarState={avatarState}
+            onAvatarStateChange={setAvatarState}
+            autoSpeak={autoSpeak}
+            onAutoSpeakChange={setAutoSpeak}
           />
         </div>
 
-        {/* Sidebar Info & Exam Hints */}
+        {/* Sidebar Info & Interactive Avatar Widget */}
         <div className="space-y-4">
+          {/* Interactive AI Assistant Character Avatar Card */}
+          <AIAvatarWidget
+            state={avatarState}
+            language={language}
+            autoSpeak={autoSpeak}
+            onToggleAutoSpeak={handleToggleAutoSpeak}
+            onStopSpeaking={handleStopSpeaking}
+          />
+
           <Card className="p-5 space-y-3">
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm">
               <Mic className="w-4 h-4" />

@@ -20,43 +20,85 @@ export async function POST(req: NextRequest) {
     const langName =
       language === "uz" ? "Uzbek (O'zbek tili, Lotin imlosi)" : language === "ru" ? "Russian (Русский язык)" : "English";
 
-    const systemPrompt = `${MENTOR_SYSTEM_PROMPTS.tutor}
+    const systemPrompt = `You are MentorAI — an intelligent, highly knowledgeable tutor helping middle and high school students prepare for competitive academic lyceum and college entrance exams in Uzbekistan (Inha Lyceum, Westminster ALWIUT, TUIT Lyceum, TMA Medical Lyceum, TSUL Law Lyceum, Specialized Lyceums).
 
-Track Focus: ${trackInstruction}
-Selected UI & Output Language: ${langName}
-CRITICAL RULE: Always reply entirely in ${langName}. Do NOT mix other languages.
-Voice Synthesis Mode: ${isVoiceMode ? "ACTIVE (Keep sentences concise, rhythmic, and clear for voice synthesis)" : "Standard"}`;
+Current Track Context: ${trackInstruction}
+Selected Output Language: ${langName}
+
+CRITICAL PEDAGOGICAL INSTRUCTIONS:
+1. EXPLAIN DIRECTLY & DEEPLY:
+   - When the student asks a concept question (e.g., "Semantic HTML teglar nima uchun kerak?", "Viyet teoremasi nima?", "Hujayra organoidlari qanday ishlaydi?"), NEVER dodge the question or respond with empty placeholders or repetitive loops.
+   - Explain the concept DIRECTLY, clearly, and thoroughly with concrete real-world code snippets, mathematical derivations, or scientific principles.
+   - Break down WHY this topic is tested on competitive entrance exams and how to remember it.
+2. STRICT LANGUAGE CONSISTENCY:
+   - Reply 100% in ${langName}. Do NOT mix random English or Russian words when Uzbek is selected, and vice-versa.
+3. VOICE SYNTHESIS READY:
+   - Voice Mode is currently: ${isVoiceMode ? "ACTIVE (Write with natural, rhythmic, and clear sentence cadence suitable for text-to-speech audio)" : "Standard"}.
+4. FORMATTING:
+   - Use clean Markdown with headers (###), bold key terms, concise bullet points, and code blocks where applicable so the explanation is visually engaging and effortless to study.`;
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // Live Gemini AI if key exists and is not placeholder
+    // Real Gemini API Integration
     if (apiKey && apiKey !== "your_gemini_api_key_here") {
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-          model: "gemini-1.5-flash",
-          systemInstruction: systemPrompt,
-        });
+      const candidateModels = [
+        "gemini-3.5-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-flash-latest",
+        "gemini-3.8-flash",
+        "gemini-2.5-flash",
+      ];
+      const genAI = new GoogleGenerativeAI(apiKey);
 
-        const history = messages.slice(0, -1).map((m: any) => ({
-          role: m.sender === "ai" ? "model" : "user",
-          parts: [{ text: m.text }],
-        }));
+      for (const modelName of candidateModels) {
+        try {
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            systemInstruction: systemPrompt,
+          });
 
-        const chat = model.startChat({ history });
-        const result = await chat.sendMessage(lastUserMessage);
-        const responseText = result.response.text();
+          // Build alternating valid history for Gemini API
+          const validHistory: { role: "user" | "model"; parts: { text: string }[] }[] = [];
+          for (let i = 0; i < messages.length - 1; i++) {
+            const m = messages[i];
+            const role: "user" | "model" = m.sender === "ai" ? "model" : "user";
+            const textContent = m.text ? m.text.trim() : "";
+            if (!textContent) continue;
 
-        return NextResponse.json({
-          text: responseText,
-          suggestions: generateContextualSuggestions(lastUserMessage, trackId, language),
-        });
-      } catch (geminiError: any) {
-        console.warn("Gemini API call error, falling back to local pedagogical responder:", geminiError?.message);
+            // Gemini history must start with user turn
+            if (validHistory.length === 0 && role === "model") {
+              continue;
+            }
+
+            // Merge consecutive messages with the same role
+            if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === role) {
+              validHistory[validHistory.length - 1].parts[0].text += `\n${textContent}`;
+            } else {
+              validHistory.push({
+                role,
+                parts: [{ text: textContent }],
+              });
+            }
+          }
+
+          const chat = model.startChat({ history: validHistory });
+          const result = await chat.sendMessage(lastUserMessage);
+          const responseText = result.response.text();
+
+          if (responseText && responseText.trim().length > 0) {
+            return NextResponse.json({
+              text: responseText,
+              suggestions: generateContextualSuggestions(lastUserMessage, trackId, language),
+            });
+          }
+        } catch (geminiError: any) {
+          console.warn(`Gemini model ${modelName} returned error:`, geminiError?.message);
+          // Try next candidate model
+        }
       }
     }
 
-    // High quality pedagogical fallback responder
+    // High quality pedagogical fallback responder if API is unreachable
     const responseText = generatePedagogicalFallback(lastUserMessage, trackId, language);
     return NextResponse.json({
       text: responseText,
@@ -77,77 +119,96 @@ function generatePedagogicalFallback(userQuery: string, trackId: string, languag
   // UZBEK LOCALIZATION
   if (language === "uz") {
     if (q.includes("salom") || q.includes("assalomu")) {
-      return "Assalomu alaykum! Men sizning shaxsiy MentorAI murabbiyingizman. Litsey imtihonlariga tayyorlanishingizda har bir bosqichda yordam beraman. Bugun qaysi mavzu yoki masala ustida ishlaymiz?";
+      return "Assalomu alaykum! Men sizning shaxsiy MentorAI murabbiyingizman. Akademik litsey va kollej imtihonlariga tayyorlanishingizda har bir mavzuni chuqur tushunishingizga yordam beraman. Qaysi savol yoki masala ustida ishlaymiz?";
     }
-    if (trackId === "exact-sciences" || q.includes("viyet") || q.includes("fizika") || q.includes("nyuton")) {
-      return `Ajoyib masala! Aniq fanlar yo'nalishida Sokratik uslubda qadam-baqadam yondashamiz:
-1. **Asosiy qoida**: Berilgan kattaliklarni va noma'lumni ajratib oling.
-2. **Formulani tanlash**: Kvadrat tenglama bo'lsa Viyet formulalari x₁ + x₂ = -b/a, fizika bo'lsa F = m · a qonunini qo'llaymiz.
-3. **Qadam**: Natijani tekshirib ko'ring.
+    if (q.includes("semantik") || q.includes("html") || q.includes("teg") || q.includes("tag")) {
+      return `**Semantik HTML teglar** — bu shunchaki sahifa ko'rinishi uchun emas, balki kodning **mazmuni va vazifasini** aniq ifodalovchi teglardir.
 
-Qaysi qatorda to'xtab qoldingiz? Menga yozing yoki mikrofon orqali ayting!`;
+### 1. No-semantik va Semantik farqi:
+- **No-semantik:** \`<div>\`, \`<span>\` — ichida nima borligini bildirmaydi, faqat oddiy blok.
+- **Semantik:** \`<header>\`, \`<nav>\`, \`<main>\`, \`<article>\`, \`<section>\`, \`<footer>\` — o'z nomi bilan vazifasini bildiradi.
+
+### 2. Nima uchun kerak?
+1. **SEO (Qidiruv tizimlari):** Google va boshqa robotlar sahifani tahlil qilayotganda semantik teglarga tayanib saytni yuqori o'ringa chiqaradi.
+2. **Accessibility (A11y):** Ko'rish imkoniyati cheklangan foydalanuvchilar ekran o'qish dasturlari (Screen Readers) orqali saytni qulay tinglay oladilar.
+3. **Clean Code (Toza kod):** Litsey imtihonlarida va jamoaviy loyihalarda kodni o'qish va tahrirlash juda oson bo'ladi.
+
+*Misol:*
+\`\`\`html
+<header>
+  <nav><a href="#home">Bosh sahifa</a></nav>
+</header>
+<main>
+  <article><h1>Asosiy mavzu</h1></article>
+</main>
+<footer><p>© 2026 MentorAI</p></footer>
+\`\`\`
+
+Yana qaysi teg yoki mavzu bo'yicha savolingiz bor?`;
+    }
+    if (trackId === "exact-sciences" || q.includes("viyet") || q.includes("fizika") || q.includes("nyuton") || q.includes("kasr")) {
+      return `Ajoyib masala! Aniq fanlar yo'nalishida litsey imtihoni talablari bo'yicha qadam-baqadam yondashamiz:
+
+1. **Berilganlarni ajratish**: Noma'lum o'zgaruvchini belgilab olamiz.
+2. **Formulani tanlash**:
+   - Kvadrat tenglamada Viyet formulasi: $x_1 + x_2 = -b/a$ va $x_1 \\cdot x_2 = c/a$.
+   - Mexanikada Nyutonning 2-qonuni: $F = m \\cdot a$.
+3. **Hisoblash**: Qiymatlarni o'rniga qo'yib, javobni mantiqiy tekshiramiz.
+
+Qaysi qatorda to'xtab qoldingiz? Yozing yoki mikrofonda ayting!`;
     }
     if (trackId === "medicine" || q.includes("hujayra") || q.includes("kimyo") || q.includes("valentlik")) {
-      return `Tibbiyot yo'nalishi uchun muhim savol! Keling, buni biologiya/kimyo tamoyillari asosida ko'ramiz:
-- **Biologiya**: O'simlik va hayvon hujayralari farqi (mitoxondriya ATF beradi, xloroplast esa fotosintez qiladi).
-- **Kimyo**: Reaksiyada massaning saqlanish qonuni bo'yicha chap va o'ng tomondagi atomlar soni teng bo'lishi shart.
+      return `Tibbiyot litseylari uchun asosiy biologik va kimyoviy tamoyil:
+- **Biologiya (Sitologiya)**: Hujayra energetik markazi — mitoxondriya (ATF sintez qiladi). O'simliklarda fotosintez xloroplastlarda boradi.
+- **Kimyo**: Modda formulasini tuzishda valentliklar ko'paytmasi teng bo'lishi shart.
 
-Qaysi modda yoki organoid haqida to'liqroq bilmoqchisiz?`;
+Qaysi reaksiya yoki organoid haqida batafsil to'xtalamiz?`;
     }
     if (trackId === "law" || q.includes("tarix") || q.includes("huquq") || q.includes("temur")) {
-      return `Yuridik litsey uchun ajoyib savol! 
-- **Tarixiy asos**: 1370-yilda Amir Temur Balxdagi qurultoyda davlat asoschisi deb e'lon qilingan va "Kuch — adolatdadir" tamoyilini o'rnatgan.
-- **Huquqiy asos**: O'zbekiston Respublikasida qonun chiqaruvchi oliy organ — Oliy Majlis hisoblanadi.
+      return `Yuridik litsey yo'nalishi bo'yicha muhim eslatma:
+- **Tarix**: 1370-yilda Amir Temur Balxdagi qurultoyda Movarounnahr hukmdori deb e'lon qilindi. Uning shiori: «Kuch — adolatdadir».
+- **Davlat va Huquq**: Qonun ustuvorligi va sudlarning mustaqilligi demokratik huquqiy davlatning asosidir.
 
-Siz qaysi davr yoki huquqiy norma bo'yicha tahlil qilmoqchisiz?`;
+Qaysi davr yoki huquqiy tushunchani tahlil qilmoqchisiz?`;
     }
-    if (trackId === "languages" || q.includes("present") || q.includes("tense") || q.includes("passive")) {
-      return `Ingliz tili imtihonlari bo'yicha asosiy qoidani eslataman:
-- Agar gapda aniq tugallangan vaqt ko'rsatilgan bo'lsa (yesterday, two days ago, in 2021) — har doim **Past Simple** ishlatiladi.
-- Agar natija hozirgi vaqtga ta'sir qilsa yoki "so far, recently, ever" bo'lsa — **Present Perfect (have/has + V3)** tanlanadi.
-
-Qaysi gapni birgalikda tekshiramiz?`;
-    }
-    return `MentorAI sizni eshitmoqda! Mavzuni chuqur tushunish uchun avval qoidani ko'rib chiqamiz, so'ngra litsey testini yechamiz. Savolingizni bering!`;
+    return `MentorAI repetitori siz bilan! Savolingizni aniq bering — qoidani misollar bilan tushuntirib, litsey testlarida tushadigan variantlarni birga tahlil qilamiz.`;
   }
 
   // RUSSIAN LOCALIZATION
   if (language === "ru") {
     if (q.includes("привет") || q.includes("здравствуй")) {
-      return "Здравствуйте! Я ваш персональный ИИ-репетитор MentorAI. Мы готовимся к поступлению в лицеи (Инха, Вестминстерский, медицинские и академические лицеи). По какому предмету или теме начнем разбор?";
+      return "Здравствуйте! Я ваш персональный ИИ-репетитор MentorAI. Мы готовимся к поступлению в академические лицеи (Инха, Вестминстерский, медицинские и юридические лицеи). Какой вопрос или тему разберем?";
     }
-    if (trackId === "exact-sciences" || q.includes("виет") || q.includes("физик") || q.includes("ньютон")) {
-      return `Отличная задача! Давайте разберем её по шагам Сократовского метода:
-1. **Данные**: Что нам известно и какую величину нужно выразить?
-2. **Формула**: Если это квадратное уравнение — применяем теорему Виета x₁ + x₂ = -b/a. Если механика — второй закон Ньютона F = m · a.
-3. **Проверка**: Проверяем размерности и подставляем значения.
+    if (q.includes("семантик") || q.includes("html") || q.includes("тег") || q.includes("tag")) {
+      return `**Семантический HTML** — это использование тегов, которые несут в себе смысловую нагрузку и описывают свое предназначение браузерам и разработчикам.
 
-На каком именно шаге возник вопрос? Напишите или скажите голосом!`;
-    }
-    if (trackId === "medicine" || q.includes("клетк") || q.includes("хими") || q.includes("валентност")) {
-      return `Важный вопрос для медицинского лицея!
-- **Цитология**: Митохондрии вырабатывают молекулы АТФ, рибосомы синтезируют белок, а хлоропласты отвечают за фотосинтез у растений.
-- **Химия**: Сумма единиц валентности первого элемента должна строго равняться сумме валентностей второго элемента.
+### 1. Отличие от несемантических тегов:
+- **Несемантические:** \`<div>\`, \`<span>\` — никак не сообщают о своем содержимом (просто контейнеры).
+- **Семантические:** \`<header>\`, \`<nav>\`, \`<main>\`, \`<article>\`, \`<section>\`, \`<footer>\` — прямо говорят, какой контент внутри.
 
-Какую конкретно реакцию или структуру клетки разберем подробнее?`;
+### 2. Главные преимущества:
+1. **SEO (Поисковая оптимизация):** Поисковики лучше индексируют структуру страницы и поднимают сайт в результатах выдачи.
+2. **Доступность (Accessibility):** Экранные дикторы для людей с нарушениями зрения могут легко ориентироваться по блокам.
+3. **Чистый код:** Преподавателям лицеев и разработчикам намного проще читать такой код без «дивовой каши».`;
     }
-    if (trackId === "law" || q.includes("истори") || q.includes("прав") || q.includes("темур")) {
-      return `Замечательный вопрос для юридического направления!
-- **История**: В 1370 году на курултае в Балхе Амир Темур был провозглашен верховным правителем. Девиз: «Сила — в справедливости».
-- **Право**: Высшим законодательным органом Республики Узбекистан является Олий Мажлис.
-
-Какой исторический период или правовую норму вы хотите разобрать?`;
-    }
-    return `MentorAI на связи! По программе академических лицеев мы учимся глубокому пониманию принципов, а не заучиванию. Задайте вопрос или пришлите формулу!`;
+    return `MentorAI на связи! Сформулируйте ваш вопрос, и мы разберем теорию, решим задачу и закрепим материал для экзаменов.`;
   }
 
   // ENGLISH LOCALIZATION
-  return `Hello! As your MentorAI tutor preparing you for competitive lyceum entrance exams, let's break this down methodically:
-1. **Identify the Core Principle**: Pinpoint the governing mathematical, grammatical, or scientific theorem.
-2. **Step-by-Step Isolation**: Isolate the variable or test trigger word.
-3. **Verify**: Eliminate distractor choices designed to trap hasty test-takers.
+  if (q.includes("semantic") || q.includes("html") || q.includes("tag")) {
+    return `**Semantic HTML** means using HTML tags that reinforce the meaning of the information on web pages rather than just defining its appearance.
 
-What specific line, formula, or sentence would you like us to solve together?`;
+### 1. Non-Semantic vs Semantic:
+- **Non-semantic:** \`<div>\` and \`<span>\` tell nothing about their contents.
+- **Semantic:** \`<header>\`, \`<nav>\`, \`<main>\`, \`<article>\`, \`<section>\`, \`<footer>\` clearly describe their role to both the browser and the developer.
+
+### 2. Why it matters for entrance exams & modern development:
+1. **Accessibility (a11y):** Screen readers use semantic landmarks to help visually impaired users navigate.
+2. **SEO Ranking:** Search engines prioritize structured semantic markup.
+3. **Maintainability:** Code is significantly easier to understand, audit, and debug.`;
+  }
+
+  return `Hello! As your MentorAI tutor preparing you for competitive lyceum entrance exams, I am ready to break down any mathematical, scientific, linguistic, or computing topic step-by-step. What problem shall we examine?`;
 }
 
 function generateContextualSuggestions(query: string, trackId: string, language: string): string[] {
@@ -179,8 +240,8 @@ function generateContextualSuggestions(query: string, trackId: string, language:
         ];
       default:
         return [
-          "Kasrlarni qisqartirish usulini tushuntirib bering",
           "Semantic HTML teglar nima uchun kerak?",
+          "Kasrlarni qisqartirish usulini tushuntirib bering",
           "Chiziqli tenglamalarni yechish qoidalari",
         ];
     }
@@ -208,9 +269,9 @@ function generateContextualSuggestions(query: string, trackId: string, language:
         ];
       default:
         return [
+          "Семантические теги в HTML5",
           "Разница между Past Simple и Present Perfect",
           "Как быстро находить общий знаменатель дробей?",
-          "Семантические теги в HTML5",
         ];
     }
   }

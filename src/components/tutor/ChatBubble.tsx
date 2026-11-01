@@ -9,9 +9,11 @@ import { cn } from '@/lib/utils';
 interface ChatBubbleProps {
   message: TutorMessage;
   onSuggestionClick?: (text: string) => void;
+  onSpeakStart?: () => void;
+  onSpeakEnd?: () => void;
 }
 
-export function ChatBubble({ message, onSuggestionClick }: ChatBubbleProps) {
+export function ChatBubble({ message, onSuggestionClick, onSpeakStart, onSpeakEnd }: ChatBubbleProps) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [copied, setCopied] = useState(false);
   const isAI = message.sender === 'ai';
@@ -20,13 +22,25 @@ export function ChatBubble({ message, onSuggestionClick }: ChatBubbleProps) {
     if (isSpeaking) {
       VoiceAssistant.stopSpeaking();
       setIsSpeaking(false);
+      onSpeakEnd?.();
     } else {
       setIsSpeaking(true);
+      onSpeakStart?.();
       const langCode = message.language === 'uz' ? 'uz-UZ' : message.language === 'ru' ? 'ru-RU' : 'en-US';
       VoiceAssistant.speak(message.text, {
         lang: langCode,
-        onEnd: () => setIsSpeaking(false),
-        onError: () => setIsSpeaking(false),
+        onStart: () => {
+          setIsSpeaking(true);
+          onSpeakStart?.();
+        },
+        onEnd: () => {
+          setIsSpeaking(false);
+          onSpeakEnd?.();
+        },
+        onError: () => {
+          setIsSpeaking(false);
+          onSpeakEnd?.();
+        },
       });
     }
   };

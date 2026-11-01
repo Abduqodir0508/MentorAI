@@ -6,6 +6,7 @@ import { TutorMessage, TrackType } from '@/types';
 import { ChatBubble } from './ChatBubble';
 import { VoiceInput } from './VoiceInput';
 import { LanguageSelector } from './LanguageSelector';
+import { AIAvatarWidget, AvatarState } from './AIAvatarWidget';
 import { VoiceAssistant } from '@/lib/ai/voice';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,10 @@ interface TutorInterfaceProps {
   studentName?: string;
   hasActiveSubscription?: boolean;
   isAdmin?: boolean;
+  avatarState?: AvatarState;
+  onAvatarStateChange?: (state: AvatarState) => void;
+  autoSpeak?: boolean;
+  onAutoSpeakChange?: (autoSpeak: boolean) => void;
 }
 
 export function TutorInterface({
@@ -22,18 +27,46 @@ export function TutorInterface({
   studentName = 'Student',
   hasActiveSubscription = true,
   isAdmin = false,
+  avatarState: externalAvatarState,
+  onAvatarStateChange,
+  autoSpeak: externalAutoSpeak,
+  onAutoSpeakChange,
 }: TutorInterfaceProps) {
   const { language, setLanguage, t } = useLanguage();
   const [trackId, setTrackId] = useState<TrackType>(initialTrackId);
-  const [autoSpeak, setAutoSpeak] = useState(false);
+  const [internalAutoSpeak, setInternalAutoSpeak] = useState(false);
+  const [internalAvatarState, setInternalAvatarState] = useState<AvatarState>('idle');
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync state between internal and external
+  const autoSpeak = externalAutoSpeak !== undefined ? externalAutoSpeak : internalAutoSpeak;
+  const avatarState = externalAvatarState !== undefined ? externalAvatarState : internalAvatarState;
+
+  const setAvatarState = (state: AvatarState) => {
+    setInternalAvatarState(state);
+    onAvatarStateChange?.(state);
+  };
+
+  const setAutoSpeak = (val: boolean) => {
+    setInternalAutoSpeak(val);
+    onAutoSpeakChange?.(val);
+    if (!val) {
+      VoiceAssistant.stopSpeaking();
+      setAvatarState('idle');
+    }
+  };
+
+  const handleStopSpeaking = () => {
+    VoiceAssistant.stopSpeaking();
+    setAvatarState('idle');
+  };
 
   const getWelcomeText = (lang: string, name: string) => {
     if (lang === 'uz') {
       return `Assalomu alaykum, ${name}! Men sizning shaxsiy MentorAI repetitoringizman.
 
-Litsey va kollejlarga (Inha, ALWIUT, Toshkent tibbiyot, Yuridik va boshqa litseylar) kirish imtihonlariga tayyorlanishingizda har bir qadamda yordam beraman.
+Litsey va kollejlarga (Inha, ALWIUT, Toshkent tibbiyot, Yuridik va boshqa akademik litseylar) kirish imtihonlariga tayyorlanishingizda har bir qadamda yordam beraman.
 
 Mavzuni tushunmay qolganingizda yoki savolingiz bo'lsa, yozing yoki mikrofon orqali ayting!`;
     }
@@ -54,22 +87,22 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
   const getInitialSuggestions = (lang: string) => {
     if (lang === 'uz') {
       return [
+        "Semantic HTML teglar nima uchun kerak?",
         "Kasrlarni qisqartirish va umumiy maxraj topish",
         "Viyet teoremasidan qanday tez foydalaniladi?",
-        "O'simlik va hayvon hujayralari farqi nima?",
       ];
     }
     if (lang === 'ru') {
       return [
+        "Семантические теги в HTML5 и их применение",
         "Как быстро находить общий знаменатель дробей?",
         "Как применять теорему Виета для x₁² + x₂²?",
-        "Разница между Past Simple и Present Perfect",
       ];
     }
     return [
+      "Why are semantic HTML tags essential?",
       "How to find common denominator for fractions?",
       "Explain Vieta's formulas for quadratics",
-      "Past Simple vs Present Perfect triggers",
     ];
   };
 
@@ -129,6 +162,7 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
     setMessages(newMessages);
     setInputText('');
     setIsLoading(true);
+    setAvatarState('thinking');
 
     try {
       const response = await fetch('/api/chat', {
@@ -155,13 +189,21 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
 
       setMessages((prev) => [...prev, aiMsg]);
 
-      // If auto-speak enabled, synthesize speech in target language
+      // If auto-speak enabled, synthesize speech in target language and update avatar to 'speaking'
       if (autoSpeak) {
         const langCode = language === 'uz' ? 'uz-UZ' : language === 'ru' ? 'ru-RU' : 'en-US';
-        VoiceAssistant.speak(aiMsg.text, { lang: langCode });
+        VoiceAssistant.speak(aiMsg.text, {
+          lang: langCode,
+          onStart: () => setAvatarState('speaking'),
+          onEnd: () => setAvatarState('idle'),
+          onError: () => setAvatarState('idle'),
+        });
+      } else {
+        setAvatarState('idle');
       }
     } catch (error) {
       console.error("Chat error:", error);
+      setAvatarState('idle');
       setMessages((prev) => [
         ...prev,
         {
@@ -184,6 +226,7 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
 
   const handleClearChat = () => {
     VoiceAssistant.stopSpeaking();
+    setAvatarState('idle');
     setMessages([
       {
         id: `welcome-${Date.now()}`,
@@ -228,8 +271,17 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
           ))}
         </div>
 
-        {/* Right tools */}
+        {/* Right tools: Avatar Status + Language Selector + Voice Toggle + Reset */}
         <div className="flex items-center gap-2">
+          {/* Compact Reactive Avatar Indicator */}
+          <AIAvatarWidget
+            compact
+            state={avatarState}
+            language={language}
+            autoSpeak={autoSpeak}
+            onStopSpeaking={handleStopSpeaking}
+          />
+
           {/* Language selector in tutor */}
           <LanguageSelector currentLanguage={language} onLanguageChange={setLanguage} />
 
@@ -268,20 +320,28 @@ Whenever you are stuck or need a step explained, type or use your microphone!`;
             key={message.id}
             message={message}
             onSuggestionClick={(suggestion) => handleSendMessage(suggestion)}
+            onSpeakStart={() => setAvatarState('speaking')}
+            onSpeakEnd={() => setAvatarState('idle')}
           />
         ))}
 
         {isLoading && (
           <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 text-xs py-2">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-600 animate-pulse">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 animate-pulse">
               <BrainCircuit className="w-4 h-4" />
             </div>
             <div className="flex items-center gap-1.5">
-              <span>{t.tutor.analyzingText}</span>
+              <span className="font-medium text-amber-600 dark:text-amber-400">
+                {language === 'uz'
+                  ? "Gemini AI javob tayyorlamoqda..."
+                  : language === 'ru'
+                  ? "Gemini AI формирует ответ..."
+                  : "Gemini AI is analyzing..."}
+              </span>
               <span className="flex space-x-1">
-                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></span>
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce"></span>
               </span>
             </div>
           </div>
